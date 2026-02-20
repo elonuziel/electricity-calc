@@ -1,12 +1,20 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>מחשבון חשמל דיירים (אופליין)</title>
     <style>
         /* ───── Reset & Base ───── */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
             background-color: #f3f4f6;
@@ -15,190 +23,643 @@
             padding-bottom: 5rem;
             -webkit-text-size-adjust: 100%;
         }
+
         input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button { opacity: 1; }
-        button { cursor: pointer; border: none; font-family: inherit; }
-        input { font-family: inherit; }
+        input[type=number]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+
+        input {
+            font-family: inherit;
+        }
 
         /* ───── Layout ───── */
-        .container { max-width: 48rem; margin: 0 auto; padding: 1rem; }
-        .container-sm { max-width: 32rem; margin: 0 auto; }
+        .container {
+            max-width: 48rem;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .container-sm {
+            max-width: 32rem;
+            margin: 0 auto;
+        }
 
         /* ───── Typography ───── */
-        .text-xs { font-size: 0.75rem; line-height: 1rem; }
-        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
-        .text-base { font-size: 1rem; }
-        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
-        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
-        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
-        .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
-        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
-        .font-bold { font-weight: 700; }
-        .font-medium { font-weight: 500; }
-        .text-center { text-align: center; }
+        .text-xs {
+            font-size: 0.75rem;
+            line-height: 1rem;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .text-base {
+            font-size: 1rem;
+        }
+
+        .text-lg {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+        }
+
+        .text-xl {
+            font-size: 1.25rem;
+            line-height: 1.75rem;
+        }
+
+        .text-2xl {
+            font-size: 1.5rem;
+            line-height: 2rem;
+        }
+
+        .text-3xl {
+            font-size: 1.875rem;
+            line-height: 2.25rem;
+        }
+
+        .text-4xl {
+            font-size: 2.25rem;
+            line-height: 2.5rem;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .text-center {
+            text-align: center;
+        }
 
         /* ───── Colors (text) ───── */
-        .text-white { color: #fff; }
-        .text-gray-400 { color: #9ca3af; }
-        .text-gray-500 { color: #6b7280; }
-        .text-gray-600 { color: #4b5563; }
-        .text-gray-700 { color: #374151; }
-        .text-gray-800 { color: #1f2937; }
-        .text-blue-200 { color: #bfdbfe; }
-        .text-blue-500 { color: #3b82f6; }
-        .text-blue-600 { color: #2563eb; }
-        .text-blue-700 { color: #1d4ed8; }
-        .text-blue-800 { color: #1e40af; }
-        .text-green-600 { color: #16a34a; }
-        .text-green-700 { color: #15803d; }
-        .text-green-800 { color: #166534; }
-        .text-red-400 { color: #f87171; }
-        .text-red-600 { color: #dc2626; }
-        .text-red-700 { color: #b91c1c; }
-        .text-red-800 { color: #991b1b; }
-        .text-orange-500 { color: #f97316; }
-        .text-orange-600 { color: #ea580c; }
-        .text-orange-800 { color: #9a3412; }
-        .text-yellow-800 { color: #854d0e; }
+        .text-white {
+            color: #fff;
+        }
+
+        .text-gray-400 {
+            color: #9ca3af;
+        }
+
+        .text-gray-500 {
+            color: #6b7280;
+        }
+
+        .text-gray-600 {
+            color: #4b5563;
+        }
+
+        .text-gray-700 {
+            color: #374151;
+        }
+
+        .text-gray-800 {
+            color: #1f2937;
+        }
+
+        .text-blue-200 {
+            color: #bfdbfe;
+        }
+
+        .text-blue-500 {
+            color: #3b82f6;
+        }
+
+        .text-blue-600 {
+            color: #2563eb;
+        }
+
+        .text-blue-700 {
+            color: #1d4ed8;
+        }
+
+        .text-blue-800 {
+            color: #1e40af;
+        }
+
+        .text-green-600 {
+            color: #16a34a;
+        }
+
+        .text-green-700 {
+            color: #15803d;
+        }
+
+        .text-green-800 {
+            color: #166534;
+        }
+
+        .text-red-400 {
+            color: #f87171;
+        }
+
+        .text-red-600 {
+            color: #dc2626;
+        }
+
+        .text-red-700 {
+            color: #b91c1c;
+        }
+
+        .text-red-800 {
+            color: #991b1b;
+        }
+
+        .text-orange-500 {
+            color: #f97316;
+        }
+
+        .text-orange-600 {
+            color: #ea580c;
+        }
+
+        .text-orange-800 {
+            color: #9a3412;
+        }
+
+        .text-yellow-800 {
+            color: #854d0e;
+        }
+
+        .text-yellow-700 {
+            color: #a16207;
+        }
+
+        .border-yellow-300 {
+            border-color: #fde047;
+        }
 
         /* ───── Colors (background) ───── */
-        .bg-white { background-color: #fff; }
-        .bg-gray-50 { background-color: #f9fafb; }
-        .bg-gray-100 { background-color: #f3f4f6; }
-        .bg-gray-600 { background-color: #4b5563; }
-        .bg-blue-50 { background-color: #eff6ff; }
-        .bg-blue-600 { background-color: #2563eb; }
-        .bg-green-50 { background-color: #f0fdf4; }
-        .bg-green-600 { background-color: #16a34a; }
-        .bg-red-50 { background-color: #fef2f2; }
-        .bg-red-600 { background-color: #dc2626; }
-        .bg-orange-50 { background-color: #fff7ed; }
-        .bg-orange-500 { background-color: #f97316; }
-        .bg-orange-600 { background-color: #ea580c; }
-        .bg-yellow-50 { background-color: #fefce8; }
+        .bg-white {
+            background-color: #fff;
+        }
+
+        .bg-gray-50 {
+            background-color: #f9fafb;
+        }
+
+        .bg-gray-100 {
+            background-color: #f3f4f6;
+        }
+
+        .bg-gray-600 {
+            background-color: #4b5563;
+        }
+
+        .bg-blue-50 {
+            background-color: #eff6ff;
+        }
+
+        .bg-blue-600 {
+            background-color: #2563eb;
+        }
+
+        .bg-green-50 {
+            background-color: #f0fdf4;
+        }
+
+        .bg-green-600 {
+            background-color: #16a34a;
+        }
+
+        .bg-red-50 {
+            background-color: #fef2f2;
+        }
+
+        .bg-red-600 {
+            background-color: #dc2626;
+        }
+
+        .bg-orange-50 {
+            background-color: #fff7ed;
+        }
+
+        .bg-orange-500 {
+            background-color: #f97316;
+        }
+
+        .bg-orange-600 {
+            background-color: #ea580c;
+        }
+
+        .bg-yellow-50 {
+            background-color: #fefce8;
+        }
 
         /* ───── Spacing ───── */
-        .p-2 { padding: 0.5rem; }
-        .p-3 { padding: 0.75rem; }
-        .p-4 { padding: 1rem; }
-        .p-5 { padding: 1.25rem; }
-        .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
-        .px-4 { padding-left: 1rem; padding-right: 1rem; }
-        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-        .py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
-        .pr-3 { padding-right: 0.75rem; }
-        .pt-2 { padding-top: 0.5rem; }
-        .pt-4 { padding-top: 1rem; }
-        .pb-1 { padding-bottom: 0.25rem; }
-        .pb-2 { padding-bottom: 0.5rem; }
-        .mb-1 { margin-bottom: 0.25rem; }
-        .mb-2 { margin-bottom: 0.5rem; }
-        .mb-3 { margin-bottom: 0.75rem; }
-        .mb-4 { margin-bottom: 1rem; }
-        .mb-6 { margin-bottom: 1.5rem; }
-        .ml-2 { margin-left: 0.5rem; }
-        .mt-1 { margin-top: 0.25rem; }
-        .mt-2 { margin-top: 0.5rem; }
-        .mt-3 { margin-top: 0.75rem; }
+        .p-2 {
+            padding: 0.5rem;
+        }
+
+        .p-3 {
+            padding: 0.75rem;
+        }
+
+        .p-4 {
+            padding: 1rem;
+        }
+
+        .p-5 {
+            padding: 1.25rem;
+        }
+
+        .px-2 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .py-1 {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+
+        .py-2 {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .py-3 {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+
+        .py-10 {
+            padding-top: 2.5rem;
+            padding-bottom: 2.5rem;
+        }
+
+        .pr-3 {
+            padding-right: 0.75rem;
+        }
+
+        .pt-2 {
+            padding-top: 0.5rem;
+        }
+
+        .pt-4 {
+            padding-top: 1rem;
+        }
+
+        .pb-1 {
+            padding-bottom: 0.25rem;
+        }
+
+        .pb-2 {
+            padding-bottom: 0.5rem;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.25rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-3 {
+            margin-bottom: 0.75rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+
+        .ml-2 {
+            margin-left: 0.5rem;
+        }
+
+        .mt-1 {
+            margin-top: 0.25rem;
+        }
+
+        .mt-2 {
+            margin-top: 0.5rem;
+        }
+
+        .mt-3 {
+            margin-top: 0.75rem;
+        }
 
         /* ───── Borders ───── */
-        .border { border: 1px solid #d1d5db; }
-        .border-b { border-bottom: 1px solid #e5e7eb; }
-        .border-t { border-top: 1px solid #e5e7eb; }
-        .border-r { border-right: 1px solid #e5e7eb; }
-        .border-l { border-left: 1px solid #e5e7eb; }
-        .border-t-4 { border-top: 4px solid; }
-        .border-t-4.border-gray-500 { border-top-color: #6b7280; }
-        .border-gray-300 { border-color: #d1d5db; }
-        .border-blue-100 { border-color: #dbeafe; }
-        .border-blue-200 { border-color: #bfdbfe; }
-        .border-green-100 { border-color: #dcfce7; }
-        .border-green-200 { border-color: #bbf7d0; }
-        .border-red-100 { border-color: #fee2e2; }
-        .border-red-200 { border-color: #fecaca; }
-        .border-red-300 { border-color: #fca5a5; }
-        .border-orange-200 { border-color: #fed7aa; }
-        .border-yellow-200 { border-color: #fef08a; }
+        .border {
+            border: 1px solid #d1d5db;
+        }
+
+        .border-b {
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .border-t {
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .border-r {
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .border-l {
+            border-left: 1px solid #e5e7eb;
+        }
+
+        .border-t-4 {
+            border-top: 4px solid;
+        }
+
+        .border-t-4.border-gray-500 {
+            border-top-color: #6b7280;
+        }
+
+        .border-gray-300 {
+            border-color: #d1d5db;
+        }
+
+        .border-blue-100 {
+            border-color: #dbeafe;
+        }
+
+        .border-blue-200 {
+            border-color: #bfdbfe;
+        }
+
+        .border-green-100 {
+            border-color: #dcfce7;
+        }
+
+        .border-green-200 {
+            border-color: #bbf7d0;
+        }
+
+        .border-red-100 {
+            border-color: #fee2e2;
+        }
+
+        .border-red-200 {
+            border-color: #fecaca;
+        }
+
+        .border-red-300 {
+            border-color: #fca5a5;
+        }
+
+        .border-orange-200 {
+            border-color: #fed7aa;
+        }
+
+        .border-yellow-200 {
+            border-color: #fef08a;
+        }
+
+        .bg-yellow-500 {
+            background-color: #eab308;
+        }
+
+        .bg-yellow-600 {
+            background-color: #ca8a04;
+        }
 
         /* ───── Rounded ───── */
-        .rounded { border-radius: 0.25rem; }
-        .rounded-lg { border-radius: 0.5rem; }
-        .rounded-xl { border-radius: 0.75rem; }
-        .rounded-full { border-radius: 9999px; }
-        .rounded-t-xl { border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; }
+        .rounded {
+            border-radius: 0.25rem;
+        }
+
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+
+        .rounded-xl {
+            border-radius: 0.75rem;
+        }
+
+        .rounded-full {
+            border-radius: 9999px;
+        }
+
+        .rounded-t-xl {
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
 
         /* ───── Shadows ───── */
-        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1); }
-        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1); }
-        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06); }
+        .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
+        }
+
+        .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, .1), 0 4px 6px -4px rgba(0, 0, 0, .1);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -1px rgba(0, 0, 0, .06);
+        }
 
         /* ───── Flexbox ───── */
-        .flex { display: flex; }
-        .flex-1 { flex: 1 1 0%; }
-        .items-center { align-items: center; }
-        .justify-center { justify-content: center; }
-        .justify-between { justify-content: space-between; }
-        .gap-1 { gap: 0.25rem; }
-        .gap-2 { gap: 0.5rem; }
-        .gap-3 { gap: 0.75rem; }
-        .gap-4 { gap: 1rem; }
+        .flex {
+            display: flex;
+        }
+
+        .flex-1 {
+            flex: 1 1 0%;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-1 {
+            gap: 0.25rem;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .gap-3 {
+            gap: 0.75rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
 
         /* ───── Grid ───── */
-        .grid { display: grid; }
-        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .col-span-2 { grid-column: span 2 / span 2; }
+        .grid {
+            display: grid;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .col-span-2 {
+            grid-column: span 2 / span 2;
+        }
 
         /* ───── Width / Height ───── */
-        .w-full { width: 100%; }
-        .max-w-lg { max-width: 32rem; }
-        .max-h-90vh { max-height: 90vh; }
+        .w-full {
+            width: 100%;
+        }
+
+        .max-w-lg {
+            max-width: 32rem;
+        }
+
+        .max-w-md {
+            max-width: 28rem;
+        }
+
+        .max-h-90vh {
+            max-height: 90vh;
+        }
 
         /* ───── Overflow ───── */
-        .overflow-hidden { overflow: hidden; }
-        .overflow-y-auto { overflow-y: auto; }
+        .overflow-hidden {
+            overflow: hidden;
+        }
+
+        .overflow-y-auto {
+            overflow-y: auto;
+        }
 
         /* ───── Position ───── */
-        .relative { position: relative; }
-        .absolute { position: absolute; }
-        .sticky { position: sticky; }
-        .fixed { position: fixed; }
-        .top-0 { top: 0; }
-        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-        .neg-top-2 { top: -0.5rem; }
-        .right-2 { right: 0.5rem; }
-        .z-10 { z-index: 10; }
-        .z-50 { z-index: 50; }
+        .relative {
+            position: relative;
+        }
+
+        .absolute {
+            position: absolute;
+        }
+
+        .sticky {
+            position: sticky;
+        }
+
+        .fixed {
+            position: fixed;
+        }
+
+        .top-0 {
+            top: 0;
+        }
+
+        .inset-0 {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        .neg-top-2 {
+            top: -0.5rem;
+        }
+
+        .right-2 {
+            right: 0.5rem;
+        }
+
+        .z-10 {
+            z-index: 10;
+        }
+
+        .z-50 {
+            z-index: 50;
+        }
 
         /* ───── Display ───── */
-        .hidden { display: none !important; }
-        .block { display: block; }
+        .hidden {
+            display: none !important;
+        }
+
+        .block {
+            display: block;
+        }
 
         /* ───── Misc ───── */
-        .transition { transition: all 0.15s ease; }
-        .list-disc { list-style-type: disc; }
-        .list-inside { list-style-position: inside; }
+        .transition {
+            transition: all 0.15s ease;
+        }
+
+        .list-disc {
+            list-style-type: disc;
+        }
+
+        .list-inside {
+            list-style-position: inside;
+        }
 
         /* space-y helper: vertical spacing between children */
-        .space-y-1 > * + * { margin-top: 0.25rem; }
-        .space-y-3 > * + * { margin-top: 0.75rem; }
-        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-1>*+* {
+            margin-top: 0.25rem;
+        }
+
+        .space-y-3>*+* {
+            margin-top: 0.75rem;
+        }
+
+        .space-y-4>*+* {
+            margin-top: 1rem;
+        }
 
         /* ───── Header ───── */
         header {
             background-color: #2563eb;
             color: #fff;
             padding: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, .1);
             position: sticky;
             top: 0;
             z-index: 10;
         }
-        header .inner { max-width: 48rem; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        header h1 { font-size: 1.25rem; font-weight: 700; }
-        header button { background: none; color: #fff; font-size: 1.25rem; }
-        header button:hover { color: #bfdbfe; }
+
+        header .inner {
+            max-width: 48rem;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        header button {
+            background: none;
+            color: #fff;
+            font-size: 1.25rem;
+        }
+
+        header button:hover {
+            color: #bfdbfe;
+        }
 
         /* ───── Buttons ───── */
         .btn {
@@ -209,14 +670,42 @@
             border-radius: 0.5rem;
             transition: background-color 0.15s ease;
         }
-        .btn-blue { background-color: #2563eb; color: #fff; }
-        .btn-blue:hover { background-color: #1d4ed8; }
-        .btn-gray { background-color: #4b5563; color: #fff; }
-        .btn-gray:hover { background-color: #374151; }
-        .btn-green { background-color: #16a34a; color: #fff; }
-        .btn-green:hover { background-color: #15803d; }
-        .btn-orange { background-color: #f97316; color: #fff; }
-        .btn-orange:hover { background-color: #ea580c; }
+
+        .btn-blue {
+            background-color: #2563eb;
+            color: #fff;
+        }
+
+        .btn-blue:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-gray {
+            background-color: #4b5563;
+            color: #fff;
+        }
+
+        .btn-gray:hover {
+            background-color: #374151;
+        }
+
+        .btn-green {
+            background-color: #16a34a;
+            color: #fff;
+        }
+
+        .btn-green:hover {
+            background-color: #15803d;
+        }
+
+        .btn-orange {
+            background-color: #f97316;
+            color: #fff;
+        }
+
+        .btn-orange:hover {
+            background-color: #ea580c;
+        }
 
         /* ───── Inputs ───── */
         .input-field {
@@ -228,22 +717,24 @@
             font-family: inherit;
             outline: none;
         }
+
         .input-field:focus {
             border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
 
         /* ───── Modal Overlay ───── */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 50;
             padding: 1rem;
         }
+
         .modal-content {
             background: #fff;
             border-radius: 0.75rem;
@@ -258,9 +749,12 @@
             background: #fff;
             border-radius: 0.75rem;
             overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -1px rgba(0, 0, 0, .06);
         }
-        .bill-card + .bill-card { margin-top: 1rem; }
+
+        .bill-card+.bill-card {
+            margin-top: 1rem;
+        }
 
         /* ───── Tenant Mini-Card ───── */
         .tenant-card {
@@ -269,6 +763,7 @@
             padding: 0.75rem;
             position: relative;
         }
+
         .tenant-label {
             position: absolute;
             top: -0.5rem;
@@ -280,17 +775,25 @@
         }
 
         /* ───── Emoji icons (replace font-awesome) ───── */
-        .icon { font-style: normal; }
+        .icon {
+            font-style: normal;
+        }
 
         /* ───── Responsive ───── */
         @media (min-width: 768px) {
-            .md-grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .md-grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
+
         @media (max-width: 767px) {
-            .md-grid-cols-2 { grid-template-columns: 1fr; }
+            .md-grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <!-- Header -->
@@ -302,44 +805,76 @@
     </header>
 
     <main class="container">
-        
+
         <!-- Settings Panel (Hidden by default) -->
-        <div id="settingsPanel" class="hidden" style="background:#fff; border-radius:0.5rem; padding:1rem; margin-bottom:1.5rem; border-top:4px solid #6b7280; box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
-            <h2 style="font-size:1.125rem; font-weight:700; margin-bottom:1rem; color:#374151; border-bottom:1px solid #e5e7eb; padding-bottom:0.5rem;">הגדרות</h2>
-            
+        <div id="settingsPanel" class="hidden"
+            style="background:#fff; border-radius:0.5rem; padding:1rem; margin-bottom:1.5rem; border-top:4px solid #6b7280; box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
+            <h2
+                style="font-size:1.125rem; font-weight:700; margin-bottom:1rem; color:#374151; border-bottom:1px solid #e5e7eb; padding-bottom:0.5rem;">
+                הגדרות</h2>
+
             <div style="margin-bottom:1.5rem;">
-                <h3 style="font-weight:700; font-size:0.875rem; color:#4b5563; margin-bottom:0.5rem;">קריאה ראשונית (התחלתית)</h3>
-                <p style="font-size:0.75rem; color:#6b7280; margin-bottom:0.75rem;">המספרים שהיו בשעונים לפני החשבון הראשון.</p>
+                <h3 style="font-weight:700; font-size:0.875rem; color:#4b5563; margin-bottom:0.5rem;">קריאה ראשונית
+                    (התחלתית)</h3>
+                <p style="font-size:0.75rem; color:#6b7280; margin-bottom:0.75rem;">המספרים שהיו בשעונים לפני החשבון
+                    הראשון.</p>
                 <div class="grid md-grid-cols-2" style="gap:1rem; margin-bottom:1rem;">
                     <div>
-                        <label style="display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:0.25rem;">קריאה התחלתית - עליונה</label>
+                        <label
+                            style="display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:0.25rem;">קריאה
+                            התחלתית - עליונה</label>
                         <input type="number" id="initReadingTop" class="input-field" placeholder="0">
                     </div>
                     <div>
-                        <label style="display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:0.25rem;">קריאה התחלתית - תחתונה</label>
+                        <label
+                            style="display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:0.25rem;">קריאה
+                            התחלתית - תחתונה</label>
                         <input type="number" id="initReadingBottom" class="input-field" placeholder="0">
                     </div>
                 </div>
-                <button onclick="saveSettings()" class="btn btn-gray w-full" style="padding:0.5rem 1rem; margin-bottom:1rem;">
+                <button onclick="saveSettings()" class="btn btn-gray w-full"
+                    style="padding:0.5rem 1rem; margin-bottom:1rem;">
                     שמור קריאות התחלתיות
                 </button>
             </div>
 
             <div style="border-top:1px solid #e5e7eb; padding-top:1rem;" class="space-y-3">
-                <h3 style="font-weight:700; font-size:0.875rem; color:#4b5563; margin-bottom:0.5rem;">גיבוי נתונים</h3>
+                <h3 style="font-weight:700; font-size:0.875rem; color:#4b5563; margin-bottom:0.5rem;">גיבוי נתונים /
+                    איפוס</h3>
                 <button onclick="exportToCSV()" class="btn btn-green w-full" style="padding:0.5rem 1rem; gap:0.5rem;">
                     📤 ייצוא לאקסל (CSV)
                 </button>
-                <button onclick="document.getElementById('csvFileInput').click()" class="btn btn-orange w-full" style="padding:0.5rem 1rem; gap:0.5rem;">
+                <button onclick="document.getElementById('csvFileInput').click()" class="btn btn-orange w-full"
+                    style="padding:0.5rem 1rem; gap:0.5rem;">
                     📥 ייבוא מאקסל (CSV)
                 </button>
                 <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="importFromCSV(event)">
-                <p style="font-size:0.75rem; color:#9ca3af; text-align:center;">הייבוא מצפה לאותו פורמט כמו הייצוא. שורות כפולות (לפי תאריך) ידלגו.</p>
+                <p style="font-size:0.75rem; color:#9ca3af; text-align:center;">הייבוא מצפה לאותו פורמט כמו הייצוא.
+                    שורות כפולות (לפי תאריך) ידלגו.</p>
+
+                <div style="margin-top:0.75rem; margin-bottom:0.75rem; border-top:1px solid #e5e7eb;"></div>
+
+                <button onclick="resetAllData()" class="btn w-full"
+                    style="background:#dc2626; color:#fff; padding:0.5rem 1rem; gap:0.5rem;">
+                    🗑️ מחיקת כל הנתונים (איפוס)
+                </button>
             </div>
         </div>
 
+        <!-- Initial Readings Banner -->
+        <div id="initReadingsBanner" class="hidden"
+            style="background:#fefce8; border:1px solid #fde047; border-radius:0.5rem; padding:1rem; margin-bottom:1.5rem; box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
+            <div style="display:flex; align-items:center; gap:0.5rem; color:#854d0e; margin-bottom:0.25rem;">
+                <span>⚠️</span>
+                <span style="font-weight:700;">נדרשת קריאה ראשונית</span>
+            </div>
+            <p style="font-size:0.875rem; color:#a16207;">לפני הוספת חשבון ראשון, יש להזין את קריאות המונים מהחודש
+                הקודם.</p>
+        </div>
+
         <!-- Add New Bill Button -->
-        <button onclick="openModal()" class="btn btn-blue w-full" style="padding:0.75rem; font-size:1rem; margin-bottom:1.5rem; box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
+        <button onclick="openModal()" class="btn btn-blue w-full"
+            style="padding:0.75rem; font-size:1rem; margin-bottom:1.5rem; box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
             ➕ הוספת חשבון חדש
         </button>
 
@@ -356,32 +891,40 @@
     <!-- Add/Edit Bill Modal -->
     <div id="billModal" class="modal-overlay hidden">
         <div class="modal-content">
-            <div style="padding:1.25rem; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; background:#eff6ff; border-radius:0.75rem 0.75rem 0 0;">
+            <div
+                style="padding:1.25rem; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; background:#eff6ff; border-radius:0.75rem 0.75rem 0 0;">
                 <h2 id="modalTitle" style="font-size:1.25rem; font-weight:700; color:#1e40af;">פרטי חשבון חדש</h2>
-                <button onclick="closeModal()" style="background:none; color:#6b7280; font-size:1.5rem; line-height:1;">&times;</button>
+                <button onclick="closeModal()"
+                    style="background:none; color:#6b7280; font-size:1.5rem; line-height:1;">&times;</button>
             </div>
-            
+
             <form id="billForm" onsubmit="handleFormSubmit(event)" style="padding:1.25rem;" class="space-y-4">
-                
+
                 <!-- Validation Errors -->
-                <div id="formErrors" class="hidden" style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:0.75rem; border-radius:0.5rem; font-size:0.875rem;">
+                <div id="formErrors" class="hidden"
+                    style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:0.75rem; border-radius:0.5rem; font-size:0.875rem;">
                     <ul id="formErrorList" class="list-disc list-inside space-y-1"></ul>
                 </div>
 
                 <!-- Main Bill Section -->
                 <div style="background:#fef2f2; padding:0.75rem; border-radius:0.5rem; border:1px solid #fee2e2;">
-                    <h3 style="font-weight:700; color:#991b1b; margin-bottom:0.5rem; border-bottom:1px solid #fecaca; padding-bottom:0.25rem;">🧾 חשבון כללי (ראשי)</h3>
+                    <h3
+                        style="font-weight:700; color:#991b1b; margin-bottom:0.5rem; border-bottom:1px solid #fecaca; padding-bottom:0.25rem;">
+                        🧾 חשבון כללי (ראשי)</h3>
                     <div class="grid grid-cols-2" style="gap:0.75rem;">
                         <div>
-                            <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563;">תאריך החשבון</label>
+                            <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563;">תאריך
+                                החשבון</label>
                             <input type="date" id="billDate" required class="input-field">
                         </div>
                         <div>
-                            <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563;">סה"כ לתשלום (₪)</label>
+                            <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563;">סה"כ לתשלום
+                                (₪)</label>
                             <input type="number" step="0.01" min="0.01" id="mainAmount" required class="input-field">
                         </div>
                         <div class="col-span-2">
-                            <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563;">סה"כ צריכה (קוט"ש)</label>
+                            <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563;">סה"כ צריכה
+                                (קוט"ש)</label>
                             <input type="number" step="1" min="1" id="mainKwh" required class="input-field">
                         </div>
                     </div>
@@ -389,27 +932,80 @@
 
                 <!-- Top Apartment -->
                 <div style="background:#f0fdf4; padding:0.75rem; border-radius:0.5rem; border:1px solid #dcfce7;">
-                    <h3 style="font-weight:700; color:#166534; margin-bottom:0.5rem; border-bottom:1px solid #bbf7d0; padding-bottom:0.25rem;">🏠 דירה עליונה</h3>
+                    <h3
+                        style="font-weight:700; color:#166534; margin-bottom:0.5rem; border-bottom:1px solid #bbf7d0; padding-bottom:0.25rem;">
+                        🏠 דירה עליונה</h3>
                     <div>
-                        <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563;">קריאת מונה נוכחית</label>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563;">קריאת מונה
+                            נוכחית</label>
                         <input type="number" step="1" id="readingTop" required class="input-field">
-                        <p style="font-size:0.75rem; color:#6b7280; margin-top:0.25rem;">קריאה קודמת: <span id="prevTopDisplay">0</span></p>
+                        <p style="font-size:0.75rem; color:#6b7280; margin-top:0.25rem;">קריאה קודמת: <span
+                                id="prevTopDisplay">0</span></p>
                     </div>
                 </div>
 
                 <!-- Bottom Apartment -->
                 <div style="background:#eff6ff; padding:0.75rem; border-radius:0.5rem; border:1px solid #dbeafe;">
-                    <h3 style="font-weight:700; color:#1e40af; margin-bottom:0.5rem; border-bottom:1px solid #bfdbfe; padding-bottom:0.25rem;">🏢 דירה תחתונה</h3>
+                    <h3
+                        style="font-weight:700; color:#1e40af; margin-bottom:0.5rem; border-bottom:1px solid #bfdbfe; padding-bottom:0.25rem;">
+                        🏢 דירה תחתונה</h3>
                     <div>
-                        <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563;">קריאת מונה נוכחית</label>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563;">קריאת מונה
+                            נוכחית</label>
                         <input type="number" step="1" id="readingBottom" required class="input-field">
-                        <p style="font-size:0.75rem; color:#6b7280; margin-top:0.25rem;">קריאה קודמת: <span id="prevBottomDisplay">0</span></p>
+                        <p style="font-size:0.75rem; color:#6b7280; margin-top:0.25rem;">קריאה קודמת: <span
+                                id="prevBottomDisplay">0</span></p>
                     </div>
                 </div>
 
                 <div style="padding-top:0.5rem;">
-                    <button type="submit" class="btn btn-blue w-full" style="padding:0.75rem; font-size:1rem; box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
+                    <button type="submit" class="btn btn-blue w-full"
+                        style="padding:0.75rem; font-size:1rem; box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
                         שמור וחשב
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Initial Readings Modal -->
+    <div id="initReadingsModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width:28rem;">
+            <div
+                style="padding:1.25rem; border-bottom:1px solid #e5e7eb; background:#fefce8; border-radius:0.75rem 0.75rem 0 0;">
+                <h2
+                    style="font-size:1.25rem; font-weight:700; color:#854d0e; display:flex; align-items:center; gap:0.5rem;">
+                    🔢 קריאות מונים מהחודש שעבר
+                </h2>
+                <p style="font-size:0.875rem; color:#a16207; margin-top:0.25rem;">יש להזין את הקריאות שהיו בשעונים לפני
+                    החשבון הראשון.</p>
+            </div>
+            <form id="initReadingsForm" onsubmit="handleInitReadingsSubmit(event)" style="padding:1.25rem;"
+                class="space-y-4">
+                <div id="initFormErrors" class="hidden"
+                    style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:0.75rem; border-radius:0.5rem; font-size:0.875rem;">
+                    <ul id="initFormErrorList" class="list-disc list-inside space-y-1"></ul>
+                </div>
+                <div style="background:#f0fdf4; padding:0.75rem; border-radius:0.5rem; border:1px solid #dcfce7;">
+                    <label
+                        style="display:block; font-size:0.875rem; font-weight:700; color:#166534; margin-bottom:0.25rem;">קריאת
+                        מונה - דירה עליונה</label>
+                    <input type="number" id="initTopInput" required class="input-field" placeholder="למשל: 45468">
+                </div>
+                <div style="background:#eff6ff; padding:0.75rem; border-radius:0.5rem; border:1px solid #dbeafe;">
+                    <label
+                        style="display:block; font-size:0.875rem; font-weight:700; color:#1e40af; margin-bottom:0.25rem;">קריאת
+                        מונה - דירה תחתונה</label>
+                    <input type="number" id="initBottomInput" required class="input-field" placeholder="למשל: 61189">
+                </div>
+                <div style="display:flex; gap:0.75rem; padding-top:0.5rem;">
+                    <button type="submit" class="btn"
+                        style="flex:1; background:#eab308; color:#fff; padding:0.75rem; font-size:1rem; box-shadow:0 4px 6px -1px rgba(0,0,0,.1);">
+                        שמור והמשך
+                    </button>
+                    <button type="button" onclick="closeInitReadingsModal()"
+                        style="padding:0.75rem 1rem; border-radius:0.5rem; border:1px solid #d1d5db; background:#fff; color:#4b5563;">
+                        ביטול
                     </button>
                 </div>
             </form>
@@ -419,7 +1015,7 @@
     <script>
         // ───── State ─────
         let bills = [];
-        let initialSettings = { top: 45468, bottom: 61189 };
+        let initialSettings = { top: null, bottom: null };
         let editingBillId = null;
 
         // ───── Init ─────
@@ -431,6 +1027,7 @@
             bills.sort((a, b) => new Date(a.date) - new Date(b.date));
             renderSettings();
             renderBills();
+            updateInitBanner();
         });
 
         // ───── Settings ─────
@@ -449,12 +1046,82 @@
         }
 
         function renderSettings() {
-            document.getElementById('initReadingTop').value = initialSettings.top;
-            document.getElementById('initReadingBottom').value = initialSettings.bottom;
+            document.getElementById('initReadingTop').value = initialSettings.top ?? '';
+            document.getElementById('initReadingBottom').value = initialSettings.bottom ?? '';
+        }
+
+        function resetAllData() {
+            if (confirm('אזהרה: פעולה זו תמחק את כל החשבונות ואת כל ההגדרות מהמכשיר הזה.\nהאם את/ה בטוח/ה?')) {
+                if (confirm('האם אתה באמת בטוח? הנתונים יימחקו ולא ניתן יהיה לשחזר אותם.')) {
+                    localStorage.removeItem('elecBills');
+                    localStorage.removeItem('elecSettings');
+                    bills = [];
+                    initialSettings = { top: null, bottom: null };
+                    renderSettings();
+                    renderBills();
+                    updateInitBanner();
+                    alert('כל הנתונים נמחקו בהצלחה.');
+                }
+            }
+        }
+
+        function hasInitialReadings() {
+            return initialSettings.top !== null && initialSettings.bottom !== null;
+        }
+
+        function updateInitBanner() {
+            const banner = document.getElementById('initReadingsBanner');
+            if (!hasInitialReadings() && bills.length === 0) {
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        // ───── Initial Readings Modal ─────
+        function openInitReadingsModal() {
+            document.getElementById('initReadingsModal').classList.remove('hidden');
+            document.getElementById('initFormErrors').classList.add('hidden');
+            document.getElementById('initTopInput').value = '';
+            document.getElementById('initBottomInput').value = '';
+        }
+
+        function closeInitReadingsModal() {
+            document.getElementById('initReadingsModal').classList.add('hidden');
+        }
+
+        function handleInitReadingsSubmit(e) {
+            e.preventDefault();
+            const topVal = parseFloat(document.getElementById('initTopInput').value);
+            const bottomVal = parseFloat(document.getElementById('initBottomInput').value);
+            const errors = [];
+
+            if (isNaN(topVal)) errors.push('יש להזין קריאת מונה עליונה.');
+            if (isNaN(bottomVal)) errors.push('יש להזין קריאת מונה תחתונה.');
+
+            if (errors.length > 0) {
+                const container = document.getElementById('initFormErrors');
+                const list = document.getElementById('initFormErrorList');
+                list.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+                container.classList.remove('hidden');
+                return;
+            }
+
+            initialSettings.top = topVal;
+            initialSettings.bottom = bottomVal;
+            localStorage.setItem('elecSettings', JSON.stringify(initialSettings));
+            renderSettings();
+            closeInitReadingsModal();
+            updateInitBanner();
+            openModal();
         }
 
         // ───── Modal (Add / Edit) ─────
         function openModal(billId = null) {
+            if (!billId && !hasInitialReadings()) {
+                openInitReadingsModal();
+                return;
+            }
             document.getElementById('billModal').classList.remove('hidden');
             hideFormErrors();
             const modalTitle = document.getElementById('modalTitle');
@@ -634,7 +1301,7 @@
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 try {
                     const text = e.target.result.replace(/^\uFEFF/, '');
                     const lines = text.split('\n').filter(l => l.trim() !== '');
@@ -785,4 +1452,5 @@
         }
     </script>
 </body>
+
 </html>

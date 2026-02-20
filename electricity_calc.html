@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +9,18 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap');
-        body { font-family: 'Rubik', sans-serif; background-color: #f3f4f6; }
-        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
     </style>
 </head>
+
 <body class="pb-20">
 
     <!-- Header -->
@@ -25,44 +34,68 @@
     </header>
 
     <main class="max-w-3xl mx-auto p-4">
-        
+
         <!-- Settings Panel (Hidden by default) -->
         <div id="settingsPanel" class="hidden bg-white rounded-lg p-4 mb-6 card-shadow border-t-4 border-gray-500">
             <h2 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">הגדרות</h2>
-            
+
             <div class="mb-6">
                 <h3 class="font-bold text-sm text-gray-600 mb-2">קריאה ראשונית (התחלתית)</h3>
                 <p class="text-xs text-gray-500 mb-3">המספרים שהיו בשעונים לפני החשבון הראשון.</p>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">קריאה התחלתית - עליונה</label>
-                        <input type="number" id="initReadingTop" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500" placeholder="0">
+                        <input type="number" id="initReadingTop"
+                            class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500" placeholder="0">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">קריאה התחלתית - תחתונה</label>
-                        <input type="number" id="initReadingBottom" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500" placeholder="0">
+                        <input type="number" id="initReadingBottom"
+                            class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500" placeholder="0">
                     </div>
                 </div>
-                <button onclick="saveSettings()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 w-full mb-4">
+                <button onclick="saveSettings()"
+                    class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 w-full mb-4">
                     שמור קריאות התחלתיות
                 </button>
             </div>
 
             <div class="border-t pt-4 space-y-3">
-                <h3 class="font-bold text-sm text-gray-600 mb-2">גיבוי נתונים</h3>
-                <button onclick="exportToCSV()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full flex items-center justify-center gap-2">
+                <h3 class="font-bold text-sm text-gray-600 mb-2">גיבוי נתונים / איפוס</h3>
+                <button onclick="exportToCSV()"
+                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full flex items-center justify-center gap-2">
                     <i class="fas fa-file-export"></i> ייצוא לאקסל (CSV)
                 </button>
-                <button onclick="document.getElementById('csvFileInput').click()" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 w-full flex items-center justify-center gap-2">
+                <button onclick="document.getElementById('csvFileInput').click()"
+                    class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 w-full flex items-center justify-center gap-2">
                     <i class="fas fa-file-import"></i> ייבוא מאקסל (CSV)
                 </button>
                 <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="importFromCSV(event)">
-                <p class="text-xs text-gray-400 text-center">הייבוא מצפה לאותו פורמט כמו הייצוא. שורות כפולות (לפי תאריך) ידלגו.</p>
+                <p class="text-xs text-gray-400 text-center">הייבוא מצפה לאותו פורמט כמו הייצוא. שורות כפולות (לפי
+                    תאריך) ידלגו.</p>
+
+                <hr class="my-3 border-gray-200">
+
+                <button onclick="resetAllData()"
+                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 w-full flex items-center justify-center gap-2">
+                    <i class="fas fa-trash-alt"></i> מחיקת כל הנתונים (איפוס)
+                </button>
             </div>
         </div>
 
+        <!-- Initial Readings Banner (shown when not yet set) -->
+        <div id="initReadingsBanner"
+            class="hidden bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-6 card-shadow">
+            <div class="flex items-center gap-2 text-yellow-800 mb-1">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span class="font-bold">נדרשת קריאה ראשונית</span>
+            </div>
+            <p class="text-sm text-yellow-700">לפני הוספת חשבון ראשון, יש להזין את קריאות המונים מהחודש הקודם.</p>
+        </div>
+
         <!-- Add New Bill Button -->
-        <button onclick="openModal()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-md hover:bg-blue-700 transition flex items-center justify-center mb-6">
+        <button onclick="openModal()"
+            class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-md hover:bg-blue-700 transition flex items-center justify-center mb-6">
             <i class="fas fa-plus ml-2"></i> הוספת חשבון חדש
         </button>
 
@@ -85,9 +118,9 @@
                 <h2 id="modalTitle" class="text-xl font-bold text-blue-800">פרטי חשבון חדש</h2>
                 <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
             </div>
-            
+
             <form id="billForm" onsubmit="handleFormSubmit(event)" class="p-5 space-y-4">
-                
+
                 <!-- Validation Errors -->
                 <div id="formErrors" class="hidden bg-red-50 border border-red-300 text-red-700 p-3 rounded-lg text-sm">
                     <ul id="formErrorList" class="list-disc list-inside space-y-1"></ul>
@@ -103,11 +136,13 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-600">סה"כ לתשלום (₪)</label>
-                            <input type="number" step="0.01" min="0.01" id="mainAmount" required class="w-full p-2 border rounded text-sm">
+                            <input type="number" step="0.01" min="0.01" id="mainAmount" required
+                                class="w-full p-2 border rounded text-sm">
                         </div>
                         <div class="col-span-2">
                             <label class="block text-xs font-bold text-gray-600">סה"כ צריכה (קוט"ש)</label>
-                            <input type="number" step="1" min="1" id="mainKwh" required class="w-full p-2 border rounded text-sm">
+                            <input type="number" step="1" min="1" id="mainKwh" required
+                                class="w-full p-2 border rounded text-sm">
                         </div>
                     </div>
                 </div>
@@ -117,7 +152,8 @@
                     <h3 class="font-bold text-green-800 mb-2 border-b border-green-200 pb-1">דירה עליונה</h3>
                     <div>
                         <label class="block text-xs font-bold text-gray-600">קריאת מונה נוכחית</label>
-                        <input type="number" step="1" id="readingTop" required class="w-full p-2 border rounded text-sm">
+                        <input type="number" step="1" id="readingTop" required
+                            class="w-full p-2 border rounded text-sm">
                         <p class="text-xs text-gray-500 mt-1">קריאה קודמת: <span id="prevTopDisplay">0</span></p>
                     </div>
                 </div>
@@ -127,14 +163,58 @@
                     <h3 class="font-bold text-blue-800 mb-2 border-b border-blue-200 pb-1">דירה תחתונה</h3>
                     <div>
                         <label class="block text-xs font-bold text-gray-600">קריאת מונה נוכחית</label>
-                        <input type="number" step="1" id="readingBottom" required class="w-full p-2 border rounded text-sm">
+                        <input type="number" step="1" id="readingBottom" required
+                            class="w-full p-2 border rounded text-sm">
                         <p class="text-xs text-gray-500 mt-1">קריאה קודמת: <span id="prevBottomDisplay">0</span></p>
                     </div>
                 </div>
 
                 <div class="pt-2">
-                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-md">
+                    <button type="submit"
+                        class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-md">
                         שמור וחשב
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Initial Readings Modal -->
+    <div id="initReadingsModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5 border-b bg-yellow-50 rounded-t-xl">
+                <h2 class="text-xl font-bold text-yellow-800 flex items-center gap-2">
+                    <i class="fas fa-tachometer-alt"></i>
+                    קריאות מונים מהחודש שעבר
+                </h2>
+                <p class="text-sm text-yellow-700 mt-1">יש להזין את הקריאות שהיו בשעונים לפני החשבון הראשון.</p>
+            </div>
+            <form id="initReadingsForm" onsubmit="handleInitReadingsSubmit(event)" class="p-5 space-y-4">
+                <div id="initFormErrors"
+                    class="hidden bg-red-50 border border-red-300 text-red-700 p-3 rounded-lg text-sm">
+                    <ul id="initFormErrorList" class="list-disc list-inside space-y-1"></ul>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg border border-green-100">
+                    <label class="block text-sm font-bold text-green-800 mb-1">קריאת מונה - דירה עליונה</label>
+                    <input type="number" id="initTopInput" required
+                        class="w-full p-2 border rounded text-sm focus:ring-green-500 focus:border-green-500"
+                        placeholder="למשל: 45468">
+                </div>
+                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <label class="block text-sm font-bold text-blue-800 mb-1">קריאת מונה - דירה תחתונה</label>
+                    <input type="number" id="initBottomInput" required
+                        class="w-full p-2 border rounded text-sm focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="למשל: 61189">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="submit"
+                        class="flex-1 bg-yellow-500 text-white py-3 rounded-lg font-bold hover:bg-yellow-600 shadow-md">
+                        שמור והמשך
+                    </button>
+                    <button type="button" onclick="closeInitReadingsModal()"
+                        class="px-4 py-3 rounded-lg border text-gray-600 hover:bg-gray-50">
+                        ביטול
                     </button>
                 </div>
             </form>
@@ -144,7 +224,7 @@
     <script>
         // ───── State ─────
         let bills = [];
-        let initialSettings = { top: 45468, bottom: 61189 };
+        let initialSettings = { top: null, bottom: null };
         let editingBillId = null;
 
         // ───── Init ─────
@@ -156,6 +236,7 @@
             bills.sort((a, b) => new Date(a.date) - new Date(b.date));
             renderSettings();
             renderBills();
+            updateInitBanner();
         });
 
         // ───── Settings ─────
@@ -174,12 +255,84 @@
         }
 
         function renderSettings() {
-            document.getElementById('initReadingTop').value = initialSettings.top;
-            document.getElementById('initReadingBottom').value = initialSettings.bottom;
+            document.getElementById('initReadingTop').value = initialSettings.top ?? '';
+            document.getElementById('initReadingBottom').value = initialSettings.bottom ?? '';
+        }
+
+        function resetAllData() {
+            if (confirm('אזהרה: פעולה זו תמחק את כל החשבונות ואת כל ההגדרות מהמכשיר הזה.\nהאם את/ה בטוח/ה?')) {
+                if (confirm('האם אתה באמת בטוח? הנתונים יימחקו ולא ניתן יהיה לשחזר אותם.')) {
+                    localStorage.removeItem('elecBills');
+                    localStorage.removeItem('elecSettings');
+                    bills = [];
+                    initialSettings = { top: null, bottom: null };
+                    renderSettings();
+                    renderBills();
+                    updateInitBanner();
+                    alert('כל הנתונים נמחקו בהצלחה.');
+                }
+            }
+        }
+
+        function hasInitialReadings() {
+            return initialSettings.top !== null && initialSettings.bottom !== null;
+        }
+
+        function updateInitBanner() {
+            const banner = document.getElementById('initReadingsBanner');
+            if (!hasInitialReadings() && bills.length === 0) {
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        // ───── Initial Readings Modal ─────
+        function openInitReadingsModal() {
+            document.getElementById('initReadingsModal').classList.remove('hidden');
+            document.getElementById('initFormErrors').classList.add('hidden');
+            document.getElementById('initTopInput').value = '';
+            document.getElementById('initBottomInput').value = '';
+        }
+
+        function closeInitReadingsModal() {
+            document.getElementById('initReadingsModal').classList.add('hidden');
+        }
+
+        function handleInitReadingsSubmit(e) {
+            e.preventDefault();
+            const topVal = parseFloat(document.getElementById('initTopInput').value);
+            const bottomVal = parseFloat(document.getElementById('initBottomInput').value);
+            const errors = [];
+
+            if (isNaN(topVal)) errors.push('יש להזין קריאת מונה עליונה.');
+            if (isNaN(bottomVal)) errors.push('יש להזין קריאת מונה תחתונה.');
+
+            if (errors.length > 0) {
+                const container = document.getElementById('initFormErrors');
+                const list = document.getElementById('initFormErrorList');
+                list.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+                container.classList.remove('hidden');
+                return;
+            }
+
+            initialSettings.top = topVal;
+            initialSettings.bottom = bottomVal;
+            localStorage.setItem('elecSettings', JSON.stringify(initialSettings));
+            renderSettings();
+            closeInitReadingsModal();
+            updateInitBanner();
+            // Now open the actual bill modal
+            openModal();
         }
 
         // ───── Modal (Add / Edit) ─────
         function openModal(billId = null) {
+            // If no initial readings set yet and this is a new bill, prompt for readings first
+            if (!billId && !hasInitialReadings()) {
+                openInitReadingsModal();
+                return;
+            }
             document.getElementById('billModal').classList.remove('hidden');
             hideFormErrors();
             const modalTitle = document.getElementById('modalTitle');
@@ -390,7 +543,7 @@
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 try {
                     const text = e.target.result.replace(/^\uFEFF/, ''); // strip BOM
                     const lines = text.split('\n').filter(l => l.trim() !== '');
@@ -576,4 +729,5 @@
         }
     </script>
 </body>
+
 </html>
