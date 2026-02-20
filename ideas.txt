@@ -1,0 +1,16 @@
+Ideas for Cloud Sync / Backup Integration:
+
+Option 1: Google Sheets via Google Apps Script (Highly Recommended)
+- How it works: A small script inside a Google Sheet acts as an API. The HTML app sends data to this script, which writes it into rows and columns.
+- Pros: Free, provides a physical and readable Excel/Google Sheet backup exactly as entered.
+- Cons: Requires a short 5-minute setup (creating a blank sheet, pasting script, publishing).
+
+Option 2: Firebase Realtime Database (The "App" Way)
+- How it works: A Firebase script in the HTML file instantly uploads JSON data to the Firebase cloud on every change.
+- Pros: True real-time syncing across devices (updates appear instantly without reloading).
+- Cons: Requires creating a Firebase project and configuring keys. Data is stored as raw JSON, not a readable spreadsheet.
+
+Option 3: Basic Cloud JSON storage (e.g., JSONBin.io)
+- How it works: Uses a free service designed to hold JSON data via simple API calls.
+- Pros: Extremely fast to set up. Just make a free account, generate an API key, and put it in the app's code.
+- Cons: Less secure if the HTML file is shared externally (since the API key is in the source code). The backup isn't a readable spreadsheet.
