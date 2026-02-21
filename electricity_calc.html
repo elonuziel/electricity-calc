@@ -87,27 +87,59 @@
                     <h3 class="font-bold text-sm text-teal-800 border-b border-teal-200 pb-2 flex items-center gap-2">
                         <i class="fas fa-cloud"></i>
                         גיבוי ענן —
-                        <a href="https://jsonblob.com" target="_blank" rel="noopener noreferrer"
-                            class="text-teal-600 underline hover:text-teal-900 transition">JsonBlob</a>
+                        <a href="https://jsonbin.io" target="_blank" rel="noopener noreferrer"
+                            class="text-teal-600 underline hover:text-teal-900 transition">JSONBin.io</a>
                     </h3>
-                    <div class="bg-white bg-opacity-70 rounded p-3 text-xs text-teal-800 leading-relaxed">
-                        <i class="fas fa-info-circle ml-1"></i>
-                        <strong>איך זה עובד?</strong>
-                        לחצי על <b>שמור לענן</b> כדי ליצור גיבוי חדש — תקבלי מזהה ייחודי.
-                        שמרי את המזהה! בפעם הבאה, הזיני אותו בשדה למטה ולחצי <b>טען מענן</b> כדי לשחזר את הנתונים.
-                        <br>
-                        <span class="text-teal-600">אפשר גם למצוא את המזהה בכתובת ב-<a href="https://jsonblob.com"
-                                target="_blank" rel="noopener noreferrer"
-                                class="underline hover:text-teal-900">jsonblob.com</a>
-                            — הוא מופיע בסוף ה-URL אחרי <code
-                                class="bg-teal-100 px-1 rounded font-mono">jsonblob.com/api/jsonBlob/</code></span>
+                    <div class="bg-white bg-opacity-70 rounded p-3 text-xs text-teal-800 leading-relaxed space-y-2">
+                        <p>
+                            <i class="fas fa-info-circle ml-1"></i>
+                            <strong>איך להגדיר גיבוי ענן?</strong>
+                        </p>
+                        <ol class="list-decimal list-inside space-y-1 pr-2">
+                            <li>הרשם בחינם לאתר <a href="https://jsonbin.io" target="_blank"
+                                    class="underline hover:text-teal-900">jsonbin.io</a>.</li>
+                            <li>גש לעמוד ה-API Keys (בתפריט או בלוח הבקרה), צור <b>Access Key</b> חדש והעתק אותו.</li>
+                            <li>הדבק את המפתח בשדה "מפתח API (API Key)" למטה.</li>
+                        </ol>
+                        <p class="mt-2 border-t border-teal-100 pt-2">
+                            <i class="fas fa-save ml-1"></i>
+                            <strong>ליצירת גיבוי חדש:</strong> לאחר הזנת מפתח API, לחץ על <b>שמור לענן</b>. המערכת תיצור
+                            מזהה (Bin ID) חדש ותציג לך אותו. הצפין/שמור אותו!
+                        </p>
+                        <p class="mt-1">
+                            <i class="fas fa-download ml-1"></i>
+                            <strong>לטעינת גיבוי קיים:</strong> הזן את מפתח ה-API ואת מזהה ה-Bin ID ששמרת בעבר, ולחץ על
+                            <b>טען מענן</b>.
+                        </p>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-teal-700 mb-1">מזהה JsonBlob</label>
-                        <input type="text" id="jsonBlobId"
-                            class="w-full p-2 border border-teal-300 rounded focus:ring-teal-500 focus:border-teal-500 text-sm font-mono bg-white"
-                            placeholder="הזן מזהה קיים או השאר ריק ליצירת חדש" dir="ltr">
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-teal-700 mb-1">
+                                מפתח API (API Key)
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <input type="password" id="jsonBinApiKey"
+                                    class="w-full p-2 border border-teal-300 rounded focus:ring-teal-500 focus:border-teal-500 text-sm font-mono bg-white"
+                                    placeholder="לדוגמה: $2a$10$..." dir="ltr" style="padding-right: 2.5rem;">
+                                <button type="button" onclick="toggleApiKeyVisibility()"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-teal-600 hover:text-teal-800 focus:outline-none">
+                                    <i id="apiKeyEyeIcon" class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-teal-700 mb-1">
+                                מזהה Bin ID
+                                <span class="text-xs font-normal text-teal-600">(השאר ריק ליצירת גיבוי חדש)</span>
+                            </label>
+                            <input type="text" id="jsonBinId"
+                                class="w-full p-2 border border-teal-300 rounded focus:ring-teal-500 focus:border-teal-500 text-sm font-mono bg-white"
+                                placeholder="לדוגמה: 65a..." dir="ltr">
+                        </div>
                     </div>
+
                     <div id="cloudStatus" class="hidden text-xs text-center py-1 rounded"></div>
                     <div class="grid grid-cols-2 gap-3">
                         <button onclick="loadFromCloud()"
@@ -119,11 +151,6 @@
                             <i class="fas fa-cloud-upload-alt"></i> שמור לענן
                         </button>
                     </div>
-                    <p class="text-xs text-teal-500 text-center">
-                        <i class="fas fa-exclamation-circle ml-1"></i>
-                        נתונים שלא נגישים במשך 75 יום נמחקים אוטומטית מ-<a href="https://jsonblob.com" target="_blank"
-                            rel="noopener noreferrer" class="underline hover:text-teal-700">JsonBlob</a>.
-                    </p>
                 </div>
             </div>
         </div>
@@ -266,7 +293,7 @@
         </div>
     </div>
 
-    <!-- Blob ID Modal -->
+    <!-- Bin ID Modal -->
     <div id="blobIdModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-xl w-full max-w-md">
             <div class="p-5 border-b bg-teal-50 rounded-t-xl">
@@ -278,7 +305,7 @@
             </div>
             <div class="p-5 space-y-4">
                 <div class="bg-gray-50 p-3 rounded-lg border">
-                    <label class="block text-xs font-bold text-gray-600 mb-1">מזהה JsonBlob שלך:</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">מזהה ה-Bin ID שלך:</label>
                     <div class="flex gap-2">
                         <input type="text" id="newBlobIdDisplay" readonly dir="ltr"
                             class="flex-1 p-2 border rounded text-sm font-mono bg-white select-all">
@@ -310,10 +337,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             const savedBills = localStorage.getItem('elecBills');
             const savedSettings = localStorage.getItem('elecSettings');
-            const savedBlobId = localStorage.getItem('elecBlobId');
+            const savedBinId = localStorage.getItem('elecBinId');
+            const savedApiKey = localStorage.getItem('elecApiKey');
+
             if (savedBills) bills = JSON.parse(savedBills);
             if (savedSettings) initialSettings = JSON.parse(savedSettings);
-            if (savedBlobId) document.getElementById('jsonBlobId').value = savedBlobId;
+            if (savedBinId) document.getElementById('jsonBinId').value = savedBinId;
+            if (savedApiKey) document.getElementById('jsonBinApiKey').value = savedApiKey;
+
             bills.sort((a, b) => new Date(a.date) - new Date(b.date));
             renderSettings();
             renderBills();
@@ -577,41 +608,57 @@
             localStorage.setItem('elecBills', JSON.stringify(bills));
         }
 
-        // ───── JsonBlob Cloud Backup ─────
-        const JSONBLOB_API = 'https://jsonblob.com/api/jsonBlob';
+        // ───── JSONBin Cloud Backup ─────
+        const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
 
         function showCloudStatus(message, isError = false) {
             const el = document.getElementById('cloudStatus');
             el.textContent = message;
-            el.className = `text-xs text-center py-1 rounded ${isError ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`;
+            el.className = `text-xs text-center py-1 rounded mt-2 ${isError ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`;
             el.classList.remove('hidden');
         }
 
         async function loadFromCloud() {
-            const blobId = document.getElementById('jsonBlobId').value.trim();
-            if (!blobId) {
-                showCloudStatus('יש להזין מזהה JsonBlob כדי לטעון נתונים.', true);
+            const apiKey = document.getElementById('jsonBinApiKey').value.trim();
+            const binId = document.getElementById('jsonBinId').value.trim();
+
+            if (!apiKey) {
+                showCloudStatus('יש להזין מפתח API כדי להתחבר לשרת.', true);
+                return;
+            }
+            if (!binId) {
+                showCloudStatus('יש להזין מזהה Bin ID כדי לטעון נתונים.', true);
                 return;
             }
 
             showCloudStatus('טוען נתונים מהענן...');
             try {
-                const res = await fetch(`${JSONBLOB_API}/${blobId}`, {
+                const res = await fetch(`${JSONBIN_API}/${binId}`, {
                     method: 'GET',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Access-Key': apiKey,
+                        'X-Bin-Meta': 'false'
+                    }
                 });
                 if (!res.ok) {
-                    if (res.status === 404) throw new Error('מזהה לא נמצא. בדוק שהמזהה נכון.');
-                    throw new Error(`שגיאה: ${res.status}`);
+                    if (res.status === 404) throw new Error('מזהה לא נמצא. בדוק שהמזהה (Bin ID) נכון.');
+                    if (res.status === 401) throw new Error('הרשאה נדחתה. בדוק שמפתח ה-API נכון.');
+                    throw new Error(`שגיאה בטעינה: ${res.status}`);
                 }
+
                 const data = await res.json();
 
-                if (data.bills) {
-                    bills = data.bills;
+                // Keep backwards compatibility if data isn't structured correctly initially.
+                const cloudBills = data.bills || data;
+                const cloudSettings = data.settings;
+
+                if (cloudBills && Array.isArray(cloudBills)) {
+                    bills = cloudBills;
                     localStorage.setItem('elecBills', JSON.stringify(bills));
                 }
-                if (data.settings) {
-                    initialSettings = data.settings;
+                if (cloudSettings) {
+                    initialSettings = cloudSettings;
                     localStorage.setItem('elecSettings', JSON.stringify(initialSettings));
                 }
 
@@ -620,7 +667,8 @@
                 renderBills();
                 updateInitBanner();
 
-                localStorage.setItem('elecBlobId', blobId);
+                localStorage.setItem('elecBinId', binId);
+                localStorage.setItem('elecApiKey', apiKey);
                 showCloudStatus('הנתונים נטענו בהצלחה מהענן! ✓');
             } catch (err) {
                 showCloudStatus(err.message, true);
@@ -628,7 +676,14 @@
         }
 
         async function saveToCloud() {
-            const blobId = document.getElementById('jsonBlobId').value.trim();
+            const apiKey = document.getElementById('jsonBinApiKey').value.trim();
+            const binId = document.getElementById('jsonBinId').value.trim();
+
+            if (!apiKey) {
+                showCloudStatus('יש להזין מפתח API כדי לשמור נתונים.', true);
+                return;
+            }
+
             const payload = JSON.stringify({
                 bills: bills,
                 settings: initialSettings
@@ -636,37 +691,52 @@
 
             showCloudStatus('שומר נתונים לענן...');
             try {
-                if (blobId) {
-                    // Update existing blob
-                    const res = await fetch(`${JSONBLOB_API}/${blobId}`, {
+                if (binId) {
+                    // Update existing bin
+                    const res = await fetch(`${JSONBIN_API}/${binId}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Access-Key': apiKey
+                        },
                         body: payload
                     });
                     if (!res.ok) {
-                        if (res.status === 404) throw new Error('מזהה לא נמצא. בדוק שהמזהה נכון.');
-                        throw new Error(`שגיאה: ${res.status}`);
+                        if (res.status === 404) throw new Error('מזהה לא נמצא. שים לב שאי אפשר לעדכן Bin ID שלא קיים בחשבון שלך.');
+                        if (res.status === 401) throw new Error('הרשאה נדחתה. בדוק שמפתח ה-API נכון.');
+                        throw new Error(`שגיאה בעדכון: ${res.status}`);
                     }
+                    localStorage.setItem('elecApiKey', apiKey);
+                    localStorage.setItem('elecBinId', binId);
                     showCloudStatus('הנתונים עודכנו בענן בהצלחה! ✓');
                 } else {
-                    // Create new blob
-                    const res = await fetch(JSONBLOB_API, {
+                    // Create new bin
+                    const res = await fetch(JSONBIN_API, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Access-Key': apiKey,
+                            'X-Bin-Name': 'Electricity Calc Backup'
+                        },
                         body: payload
                     });
-                    if (!res.ok) throw new Error(`שגיאה ביצירת גיבוי: ${res.status}`);
 
-                    const location = res.headers.get('Location');
-                    const newId = location ? location.split('/').pop() : null;
+                    if (!res.ok) {
+                        if (res.status === 401) throw new Error('הרשאה נדחתה. בדוק שמפתח ה-API נכון.');
+                        throw new Error(`שגיאה ביצירת גיבוי: ${res.status}`);
+                    }
+
+                    const responseData = await res.json();
+                    const newId = responseData.metadata.id;
 
                     if (newId) {
-                        document.getElementById('jsonBlobId').value = newId;
-                        localStorage.setItem('elecBlobId', newId);
+                        document.getElementById('jsonBinId').value = newId;
+                        localStorage.setItem('elecBinId', newId);
+                        localStorage.setItem('elecApiKey', apiKey);
                         showBlobIdModal(newId);
                         showCloudStatus('גיבוי חדש נוצר בהצלחה! ✓');
                     } else {
-                        throw new Error('לא ניתן היה לקבל את מזהה הגיבוי.');
+                        throw new Error('לא ניתן היה לקבל את מזהה הגיבוי החדש.');
                     }
                 }
             } catch (err) {
@@ -677,6 +747,21 @@
         function showBlobIdModal(id) {
             document.getElementById('newBlobIdDisplay').value = id;
             document.getElementById('blobIdModal').classList.remove('hidden');
+        }
+
+        function toggleApiKeyVisibility() {
+            const apiKeyInput = document.getElementById('jsonBinApiKey');
+            const eyeIcon = document.getElementById('apiKeyEyeIcon');
+
+            if (apiKeyInput.type === 'password') {
+                apiKeyInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                apiKeyInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
         }
 
         function closeBlobIdModal() {
