@@ -12,6 +12,7 @@ A single-page Hebrew calculator that splits a shared electricity bill between tw
 | **Input validation** | Rejects zero kWh, negative consumption (current < previous reading), and apartment consumption exceeding the total. Errors are shown inline. |
 | **CSV export** | Exports all bills (including common-area columns) to a `.csv` file with Hebrew BOM so Excel opens it correctly. |
 | **CSV import** | Import bills from a previously exported CSV. Duplicate dates are skipped. |
+| **Cloud backup** | Save and restore all data via [JsonBlob](https://jsonblob.com). Creates a unique blob ID on first save — paste it back to restore on any device. |
 | **Initial readings config** | Set the starting meter values (before the first bill) via the settings panel. |
 
 ## How the Calculation Works
@@ -42,7 +43,8 @@ $$
 2. Click the ⚙️ gear icon to set initial meter readings (one-time setup).
 3. Click **הוספת חשבון חדש** to add a new bill — enter the main bill total, total kWh, and each apartment's current meter reading.
 4. Results are displayed instantly with per-apartment cost and common-area breakdown.
-5. Use **ייצוא לאקסל** / **ייבוא מאקסל** in settings to back up or restore data.
+5. Use **ייצוא לאקסל** / **ייבוא מאקסל** in settings to back up or restore data via CSV.
+6. Use **שמור לענן** / **טען מענן** in the cloud backup section to save/restore data online via JsonBlob. Save the blob ID you receive — you'll need it to restore later.
 
 ## File Structure
 
@@ -58,3 +60,4 @@ LICENSE      — License
 - **Tailwind CSS** (CDN) — Utility-first styling
 - **Font Awesome** (CDN) — Icons
 - **localStorage** — Client-side persistence
+- **[JsonBlob](https://jsonblob.com)** — Free cloud JSON storage for backup/restore

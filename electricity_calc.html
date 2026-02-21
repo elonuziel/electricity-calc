@@ -81,6 +81,51 @@
                     <i class="fas fa-trash-alt"></i> מחיקת כל הנתונים (איפוס)
                 </button>
             </div>
+
+            <div class="border-t pt-4 mt-4">
+                <div class="bg-teal-50 rounded-lg p-4 border border-teal-200 space-y-3">
+                    <h3 class="font-bold text-sm text-teal-800 border-b border-teal-200 pb-2 flex items-center gap-2">
+                        <i class="fas fa-cloud"></i>
+                        גיבוי ענן —
+                        <a href="https://jsonblob.com" target="_blank" rel="noopener noreferrer"
+                            class="text-teal-600 underline hover:text-teal-900 transition">JsonBlob</a>
+                    </h3>
+                    <div class="bg-white bg-opacity-70 rounded p-3 text-xs text-teal-800 leading-relaxed">
+                        <i class="fas fa-info-circle ml-1"></i>
+                        <strong>איך זה עובד?</strong>
+                        לחצי על <b>שמור לענן</b> כדי ליצור גיבוי חדש — תקבלי מזהה ייחודי.
+                        שמרי את המזהה! בפעם הבאה, הזיני אותו בשדה למטה ולחצי <b>טען מענן</b> כדי לשחזר את הנתונים.
+                        <br>
+                        <span class="text-teal-600">אפשר גם למצוא את המזהה בכתובת ב-<a href="https://jsonblob.com"
+                                target="_blank" rel="noopener noreferrer"
+                                class="underline hover:text-teal-900">jsonblob.com</a>
+                            — הוא מופיע בסוף ה-URL אחרי <code
+                                class="bg-teal-100 px-1 rounded font-mono">jsonblob.com/api/jsonBlob/</code></span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-teal-700 mb-1">מזהה JsonBlob</label>
+                        <input type="text" id="jsonBlobId"
+                            class="w-full p-2 border border-teal-300 rounded focus:ring-teal-500 focus:border-teal-500 text-sm font-mono bg-white"
+                            placeholder="הזן מזהה קיים או השאר ריק ליצירת חדש" dir="ltr">
+                    </div>
+                    <div id="cloudStatus" class="hidden text-xs text-center py-1 rounded"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="loadFromCloud()"
+                            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2 text-sm shadow-sm transition">
+                            <i class="fas fa-cloud-download-alt"></i> טען מענן
+                        </button>
+                        <button onclick="saveToCloud()"
+                            class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 flex items-center justify-center gap-2 text-sm shadow-sm transition">
+                            <i class="fas fa-cloud-upload-alt"></i> שמור לענן
+                        </button>
+                    </div>
+                    <p class="text-xs text-teal-500 text-center">
+                        <i class="fas fa-exclamation-circle ml-1"></i>
+                        נתונים שלא נגישים במשך 75 יום נמחקים אוטומטית מ-<a href="https://jsonblob.com" target="_blank"
+                            rel="noopener noreferrer" class="underline hover:text-teal-700">JsonBlob</a>.
+                    </p>
+                </div>
+            </div>
         </div>
 
         <!-- Initial Readings Banner (shown when not yet set) -->
@@ -221,6 +266,40 @@
         </div>
     </div>
 
+    <!-- Blob ID Modal -->
+    <div id="blobIdModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5 border-b bg-teal-50 rounded-t-xl">
+                <h2 class="text-xl font-bold text-teal-800 flex items-center gap-2">
+                    <i class="fas fa-cloud"></i>
+                    גיבוי ענן נוצר בהצלחה!
+                </h2>
+                <p class="text-sm text-teal-700 mt-1">שמור את המזהה הזה כדי לגשת לנתונים שלך בעתיד.</p>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="bg-gray-50 p-3 rounded-lg border">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">מזהה JsonBlob שלך:</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="newBlobIdDisplay" readonly dir="ltr"
+                            class="flex-1 p-2 border rounded text-sm font-mono bg-white select-all">
+                        <button onclick="copyBlobId()" id="copyBlobBtn"
+                            class="bg-teal-600 text-white px-3 py-2 rounded hover:bg-teal-700 text-sm flex items-center gap-1">
+                            <i class="fas fa-copy"></i> העתק
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                    <i class="fas fa-exclamation-triangle ml-1"></i>
+                    <strong>חשוב:</strong> שמור את המזהה הזה! בלי המזהה לא תוכל/י לגשת לגיבוי.
+                </div>
+                <button onclick="closeBlobIdModal()"
+                    class="w-full bg-teal-600 text-white py-3 rounded-lg font-bold hover:bg-teal-700 shadow-md">
+                    הבנתי, שמרתי את המזהה
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ───── State ─────
         let bills = [];
@@ -231,8 +310,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             const savedBills = localStorage.getItem('elecBills');
             const savedSettings = localStorage.getItem('elecSettings');
+            const savedBlobId = localStorage.getItem('elecBlobId');
             if (savedBills) bills = JSON.parse(savedBills);
             if (savedSettings) initialSettings = JSON.parse(savedSettings);
+            if (savedBlobId) document.getElementById('jsonBlobId').value = savedBlobId;
             bills.sort((a, b) => new Date(a.date) - new Date(b.date));
             renderSettings();
             renderBills();
@@ -494,6 +575,122 @@
 
         function saveData() {
             localStorage.setItem('elecBills', JSON.stringify(bills));
+        }
+
+        // ───── JsonBlob Cloud Backup ─────
+        const JSONBLOB_API = 'https://jsonblob.com/api/jsonBlob';
+
+        function showCloudStatus(message, isError = false) {
+            const el = document.getElementById('cloudStatus');
+            el.textContent = message;
+            el.className = `text-xs text-center py-1 rounded ${isError ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`;
+            el.classList.remove('hidden');
+        }
+
+        async function loadFromCloud() {
+            const blobId = document.getElementById('jsonBlobId').value.trim();
+            if (!blobId) {
+                showCloudStatus('יש להזין מזהה JsonBlob כדי לטעון נתונים.', true);
+                return;
+            }
+
+            showCloudStatus('טוען נתונים מהענן...');
+            try {
+                const res = await fetch(`${JSONBLOB_API}/${blobId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+                });
+                if (!res.ok) {
+                    if (res.status === 404) throw new Error('מזהה לא נמצא. בדוק שהמזהה נכון.');
+                    throw new Error(`שגיאה: ${res.status}`);
+                }
+                const data = await res.json();
+
+                if (data.bills) {
+                    bills = data.bills;
+                    localStorage.setItem('elecBills', JSON.stringify(bills));
+                }
+                if (data.settings) {
+                    initialSettings = data.settings;
+                    localStorage.setItem('elecSettings', JSON.stringify(initialSettings));
+                }
+
+                bills.sort((a, b) => new Date(a.date) - new Date(b.date));
+                renderSettings();
+                renderBills();
+                updateInitBanner();
+
+                localStorage.setItem('elecBlobId', blobId);
+                showCloudStatus('הנתונים נטענו בהצלחה מהענן! ✓');
+            } catch (err) {
+                showCloudStatus(err.message, true);
+            }
+        }
+
+        async function saveToCloud() {
+            const blobId = document.getElementById('jsonBlobId').value.trim();
+            const payload = JSON.stringify({
+                bills: bills,
+                settings: initialSettings
+            });
+
+            showCloudStatus('שומר נתונים לענן...');
+            try {
+                if (blobId) {
+                    // Update existing blob
+                    const res = await fetch(`${JSONBLOB_API}/${blobId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: payload
+                    });
+                    if (!res.ok) {
+                        if (res.status === 404) throw new Error('מזהה לא נמצא. בדוק שהמזהה נכון.');
+                        throw new Error(`שגיאה: ${res.status}`);
+                    }
+                    showCloudStatus('הנתונים עודכנו בענן בהצלחה! ✓');
+                } else {
+                    // Create new blob
+                    const res = await fetch(JSONBLOB_API, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: payload
+                    });
+                    if (!res.ok) throw new Error(`שגיאה ביצירת גיבוי: ${res.status}`);
+
+                    const location = res.headers.get('Location');
+                    const newId = location ? location.split('/').pop() : null;
+
+                    if (newId) {
+                        document.getElementById('jsonBlobId').value = newId;
+                        localStorage.setItem('elecBlobId', newId);
+                        showBlobIdModal(newId);
+                        showCloudStatus('גיבוי חדש נוצר בהצלחה! ✓');
+                    } else {
+                        throw new Error('לא ניתן היה לקבל את מזהה הגיבוי.');
+                    }
+                }
+            } catch (err) {
+                showCloudStatus(err.message, true);
+            }
+        }
+
+        function showBlobIdModal(id) {
+            document.getElementById('newBlobIdDisplay').value = id;
+            document.getElementById('blobIdModal').classList.remove('hidden');
+        }
+
+        function closeBlobIdModal() {
+            document.getElementById('blobIdModal').classList.add('hidden');
+        }
+
+        function copyBlobId() {
+            const input = document.getElementById('newBlobIdDisplay');
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                const btn = document.getElementById('copyBlobBtn');
+                btn.innerHTML = '<i class="fas fa-check"></i> הועתק!';
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> העתק'; }, 2000);
+            });
         }
 
         // ───── CSV Export ─────
