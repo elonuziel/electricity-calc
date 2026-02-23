@@ -50,7 +50,6 @@ $$
 
 ```
 electricity_calc_jsonhosting.html  — Main app with JSONHosting.com cloud backup
-electricity_calc.html              — Legacy version with JSONBlob cloud backup
 electricity_calc_offline.html      — Offline version (no cloud backup)
 README.md                          — This file
 LICENSE                            — License
