@@ -344,3 +344,33 @@ function renderBills() {
         prevBottom = bill.readings.bottom;
     });
 }
+
+// ───── Backup Success Modal ─────
+function showBackupSuccessModal(id, editKey) {
+    document.getElementById('backupSuccessId').textContent = id;
+    document.getElementById('backupSuccessKey').textContent = editKey;
+
+    // Reset copy icons
+    document.getElementById('copyBtnId').innerHTML = '<i class="fas fa-copy"></i>';
+    document.getElementById('copyBtnKey').innerHTML = '<i class="fas fa-copy"></i>';
+
+    document.getElementById('backupSuccessModal').classList.remove('hidden');
+}
+
+function closeBackupSuccessModal() {
+    document.getElementById('backupSuccessModal').classList.add('hidden');
+}
+
+function copyToClipboard(elementId, btnId) {
+    const textToCopy = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        const btn = document.getElementById(btnId);
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check text-green-600"></i>';
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+}

@@ -123,7 +123,7 @@ async function saveToCloud() {
             localStorage.setItem('elecCloudBackupId', newId);
             localStorage.setItem('elecCloudAccessKey', newEditKey);
 
-            alert(`גיבוי חדש נוצר בהצלחה!\nמזהה: ${newId}\nמפתח עריכה: ${newEditKey}\n\nהם נשמרו אוטומטית בהגדרות שלך.\n⚠️ שמור אותם במקום בטוח כדי שתוכל לשחזר בעתיד.`);
+            showBackupSuccessModal(newId, newEditKey);
             showCloudStatus('גיבוי חדש נוצר בהצלחה! ✓');
         } else {
             localStorage.setItem('elecCloudBackupId', backupId);
