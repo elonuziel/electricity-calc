@@ -39,19 +39,19 @@ $$
 
 ## Usage
 
-1. Open `electricity_calc_jsonhosting.html` in any modern browser.
+1. Open `electricity_calc_standalone.html` in any modern browser.
 2. Click the ⚙️ gear icon to set initial meter readings (one-time setup).
 3. Click **הוספת חשבון חדש** to add a new bill — enter the main bill total, total kWh, and each apartment's current meter reading.
 4. Results are displayed instantly with per-apartment cost and common-area breakdown.
 5. Use **ייצוא לאקסל** / **ייבוא מאקסל** in settings to back up or restore data via CSV.
-6. Use **שמור לענן** / **טען מענן** in the cloud backup section to save/restore data online via JSONHosting.com. Save the ID and Edit Key you receive — you'll need them to restore or update later.
+6. Use **שמור לענן** / **טען מענן** in the cloud backup section to save/restore data online via JSONHosting.com. Save the ID and Edit Key you receive — you'll need them to restore or update later. Use the **copy buttons** to quickly save these keys.
 
 ## File Structure
 
 ```
-electricity_calc_jsonhosting.html  — Main app with JSONHosting.com cloud backup
-electricity_calc.html              — Legacy version with JSONBlob cloud backup
-electricity_calc_offline.html      — Offline version (no cloud backup)
+electricity_calc_standalone.html   — Bundled standalone version (Best for daily use)
+separated_components/              — Modular source code (Best for development)
+old/                               — Legacy versions and backups
 README.md                          — This file
 LICENSE                            — License
 ```
