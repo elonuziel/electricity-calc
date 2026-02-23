@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מחשבון חשמל דיירים</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap');
+
+body {
+    font-family: 'Rubik', sans-serif;
+    background-color: #f3f4f6;
+}
+
+.card-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+</style>
+</head>
+
+<body class="pb-20">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 shadow-lg sticky top-0 z-10">
+        <div class="max-w-3xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold"><i class="fas fa-bolt ml-2"></i>חשמל דיירים</h1>
+            <button onclick="toggleSettings()" class="text-white hover:text-blue-200">
+                <i class="fas fa-cog text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto p-4">
+
+        <!-- Settings Panel (Hidden by default) -->
+        <div id="settingsPanel" class="hidden bg-white rounded-lg p-4 mb-6 card-shadow border-t-4 border-gray-500">
+            <h2 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">הגדרות</h2>
+
+            <div class="mb-6">
+                <h3 class="font-bold text-sm text-gray-600 mb-2">קריאה ראשונית (התחלתית)</h3>
+                <p class="text-xs text-gray-500 mb-3">המספרים שהיו בשעונים לפני החשבון הראשון.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">קריאה התחלתית - עליונה</label>
+                        <input type="number" id="initReadingTop"
+                            class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">קריאה התחלתית - תחתונה</label>
+                        <input type="number" id="initReadingBottom"
+                            class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500" placeholder="0">
+                    </div>
+                </div>
+                <button onclick="saveSettings()"
+                    class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 w-full mb-4">
+                    שמור קריאות התחלתיות
+                </button>
+            </div>
+
+            <div class="border-t pt-4 space-y-3">
+                <h3 class="font-bold text-sm text-gray-600 mb-2">גיבוי נתונים / איפוס</h3>
+                <button onclick="exportToCSV()"
+                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full flex items-center justify-center gap-2">
+                    <i class="fas fa-file-export"></i> ייצוא לאקסל (CSV)
+                </button>
+                <button onclick="document.getElementById('csvFileInput').click()"
+                    class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 w-full flex items-center justify-center gap-2">
+                    <i class="fas fa-file-import"></i> ייבוא מאקסל (CSV)
+                </button>
+                <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="importFromCSV(event)">
+                <p class="text-xs text-gray-400 text-center">הייבוא מצפה לאותו פורמט כמו הייצוא. שורות כפולות (לפי
+                    תאריך) ידלגו.</p>
+
+                <hr class="my-3 border-gray-200">
+
+                <button onclick="resetAllData()"
+                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 w-full flex items-center justify-center gap-2">
+                    <i class="fas fa-trash-alt"></i> מחיקת כל הנתונים (איפוס)
+                </button>
+            </div>
+
+            <div class="border-t pt-4 mt-4">
+                <div class="bg-teal-50 rounded-lg p-4 border border-teal-200 space-y-3">
+                    <h3 class="font-bold text-sm text-teal-800 border-b border-teal-200 pb-2 flex items-center gap-2">
+                        <i class="fas fa-cloud"></i>
+                        גיבוי ענן —
+                        <a href="https://jsonhosting.com" target="_blank" rel="noopener noreferrer"
+                            class="text-teal-600 underline hover:text-teal-900 transition">JSONHosting.com</a>
+                    </h3>
+                    <div class="bg-white bg-opacity-70 rounded p-3 text-xs text-teal-800 leading-relaxed space-y-2">
+                        <p>
+                            <i class="fas fa-info-circle ml-1"></i>
+                            <strong>איך להגדיר גיבוי ענן?</strong>
+                        </p>
+                        <p>
+                            האתר <a href="https://jsonhosting.com" target="_blank"
+                                class="underline hover:text-teal-900">JSONHosting.com</a> מאפשר אחסון JSON פשוט ללא
+                            הרשמה.
+                        </p>
+                        <p class="mt-2 border-t border-teal-100 pt-2">
+                            <i class="fas fa-save ml-1"></i>
+                            <strong>ליצירת גיבוי חדש:</strong> השאר את השדות למטה <b>ריקים</b> ולחץ על <b>שמור לענן</b>.
+                            המערכת תיצור אחסון חדש ותשמור כאן אוטומטית את ה-<strong>ID</strong> ואת ה-<strong>Edit
+                                Key</strong> (מפתח עריכה).
+                        </p>
+                        <p
+                            style="color: #e02424; font-weight: bold; font-size: 1.05em; display: block; margin: 8px 0; padding: 8px; background: rgba(255, 59, 48, 0.1); border-radius: 4px; border: 1px solid rgba(255, 59, 48, 0.3);">
+                            ⚠️ חובה עליך לשמור גיבוי של ה-ID ומפתח העריכה במקום בטוח! בלי הנתונים האלו הגיבוי שלך יאבד
+                            ולא תוכל לגשת אליו ממכשיר אחר.
+                        </p>
+                        <p class="mt-1">
+                            <i class="fas fa-download ml-1"></i>
+                            <strong>לטעינת גיבוי קיים:</strong> הזן את ה-ID (או הקישור המלא) ולחץ על <b>טען מענן</b>.
+                            כדי <b>לעדכן</b> גיבוי קיים, חובה להזין גם את ה-Edit Key.
+                        </p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-teal-700 mb-1">
+                                מזהה (ID) או קישור מלא
+                                <span class="text-xs font-normal text-teal-600">(השאר ריק ליצירת גיבוי חדש)</span>
+                            </label>
+                            <input type="text" id="cloudBackupId"
+                                class="w-full p-2 border border-teal-300 rounded focus:ring-teal-500 focus:border-teal-500 text-sm font-mono bg-white"
+                                placeholder="לדוגמה: 3511dea7 או קישור API מלא" dir="ltr">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-teal-700 mb-1">
+                                מפתח עריכה (Edit Key)
+                                <span class="text-xs font-normal text-teal-600">(חובה לעדכון גיבוי קיים)</span>
+                            </label>
+                            <div class="relative">
+                                <input type="password" id="cloudAccessKey"
+                                    class="w-full p-2 border border-teal-300 rounded focus:ring-teal-500 focus:border-teal-500 text-sm font-mono bg-white"
+                                    placeholder="הדבק כאן את מפתח העריכה" dir="ltr" style="padding-right: 2.5rem;">
+                                <button type="button" onclick="toggleApiKeyVisibility()"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-teal-600 hover:text-teal-800 focus:outline-none">
+                                    <i id="apiKeyEyeIcon" class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="cloudStatus" class="hidden text-xs text-center py-1 rounded"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="loadFromCloud()"
+                            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2 text-sm shadow-sm transition">
+                            <i class="fas fa-cloud-download-alt"></i> טען מענן
+                        </button>
+                        <button onclick="saveToCloud()"
+                            class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 flex items-center justify-center gap-2 text-sm shadow-sm transition">
+                            <i class="fas fa-cloud-upload-alt"></i> שמור לענן
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Initial Readings Banner (shown when not yet set) -->
+        <div id="initReadingsBanner"
+            class="hidden bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-6 card-shadow">
+            <div class="flex items-center gap-2 text-yellow-800 mb-1">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span class="font-bold">נדרשת קריאה ראשונית</span>
+            </div>
+            <p class="text-sm text-yellow-700">לפני הוספת חשבון ראשון, יש להזין את קריאות המונים מהחודש הקודם.</p>
+        </div>
+
+        <!-- Add New Bill Button -->
+        <button onclick="openModal()"
+            class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-md hover:bg-blue-700 transition flex items-center justify-center mb-6">
+            <i class="fas fa-plus ml-2"></i> הוספת חשבון חדש
+        </button>
+
+        <!-- Bills List -->
+        <div id="billsList" class="space-y-4">
+            <!-- Bills will be injected here via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-10 text-gray-500">
+            <i class="fas fa-file-invoice text-4xl mb-3"></i>
+            <p>אין עדיין חשבונות. לחצי על הכפתור למעלה להוספה.</p>
+        </div>
+    </main>
+
+    <!-- Add/Edit Bill Modal -->
+    <div id="billModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div class="p-5 border-b flex justify-between items-center bg-blue-50 rounded-t-xl">
+                <h2 id="modalTitle" class="text-xl font-bold text-blue-800">פרטי חשבון חדש</h2>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+
+            <form id="billForm" onsubmit="handleFormSubmit(event)" class="p-5 space-y-4">
+
+                <!-- Validation Errors -->
+                <div id="formErrors" class="hidden bg-red-50 border border-red-300 text-red-700 p-3 rounded-lg text-sm">
+                    <ul id="formErrorList" class="list-disc list-inside space-y-1"></ul>
+                </div>
+
+                <!-- Main Bill Section -->
+                <div class="bg-red-50 p-3 rounded-lg border border-red-100">
+                    <h3 class="font-bold text-red-800 mb-2 border-b border-red-200 pb-1">חשבון כללי (ראשי)</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600">תאריך החשבון</label>
+                            <input type="date" id="billDate" required class="w-full p-2 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600">סה"כ לתשלום (₪)</label>
+                            <input type="number" step="0.01" min="0.01" id="mainAmount" required
+                                class="w-full p-2 border rounded text-sm">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold text-gray-600">סה"כ צריכה (קוט"ש)</label>
+                            <input type="number" step="1" min="1" id="mainKwh" required
+                                class="w-full p-2 border rounded text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Apartment -->
+                <div class="bg-green-50 p-3 rounded-lg border border-green-100">
+                    <h3 class="font-bold text-green-800 mb-2 border-b border-green-200 pb-1">דירה עליונה</h3>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600">קריאת מונה נוכחית</label>
+                        <input type="number" step="1" id="readingTop" required
+                            class="w-full p-2 border rounded text-sm">
+                        <p class="text-xs text-gray-500 mt-1">קריאה קודמת: <span id="prevTopDisplay">0</span></p>
+                    </div>
+                </div>
+
+                <!-- Bottom Apartment -->
+                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <h3 class="font-bold text-blue-800 mb-2 border-b border-blue-200 pb-1">דירה תחתונה</h3>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600">קריאת מונה נוכחית</label>
+                        <input type="number" step="1" id="readingBottom" required
+                            class="w-full p-2 border rounded text-sm">
+                        <p class="text-xs text-gray-500 mt-1">קריאה קודמת: <span id="prevBottomDisplay">0</span></p>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit"
+                        class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-md">
+                        שמור וחשב
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Initial Readings Modal -->
+    <div id="initReadingsModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5 border-b bg-yellow-50 rounded-t-xl">
+                <h2 class="text-xl font-bold text-yellow-800 flex items-center gap-2">
+                    <i class="fas fa-tachometer-alt"></i>
+                    קריאות מונים מהחודש שעבר
+                </h2>
+                <p class="text-sm text-yellow-700 mt-1">יש להזין את הקריאות שהיו בשעונים לפני החשבון הראשון.</p>
+            </div>
+            <form id="initReadingsForm" onsubmit="handleInitReadingsSubmit(event)" class="p-5 space-y-4">
+                <div id="initFormErrors"
+                    class="hidden bg-red-50 border border-red-300 text-red-700 p-3 rounded-lg text-sm">
+                    <ul id="initFormErrorList" class="list-disc list-inside space-y-1"></ul>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg border border-green-100">
+                    <label class="block text-sm font-bold text-green-800 mb-1">קריאת מונה - דירה עליונה</label>
+                    <input type="number" id="initTopInput" required
+                        class="w-full p-2 border rounded text-sm focus:ring-green-500 focus:border-green-500"
+                        placeholder="למשל: 45468">
+                </div>
+                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <label class="block text-sm font-bold text-blue-800 mb-1">קריאת מונה - דירה תחתונה</label>
+                    <input type="number" id="initBottomInput" required
+                        class="w-full p-2 border rounded text-sm focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="למשל: 61189">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="submit"
+                        class="flex-1 bg-yellow-500 text-white py-3 rounded-lg font-bold hover:bg-yellow-600 shadow-md">
+                        שמור והמשך
+                    </button>
+                    <button type="button" onclick="closeInitReadingsModal()"
+                        class="px-4 py-3 rounded-lg border text-gray-600 hover:bg-gray-50">
+                        ביטול
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Backup Success Modal -->
+    <div id="backupSuccessModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div class="p-5 border-b bg-teal-50 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-teal-800 flex items-center gap-2">
+                    <i class="fas fa-check-circle text-teal-600"></i> גיבוי חדש נוצר בהצלחה!
+                </h2>
+                <button onclick="closeBackupSuccessModal()" class="text-gray-500 hover:text-gray-700 text-2xl"
+                    style="line-height: 1;">&times;</button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">מזהה (ID)</label>
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 bg-gray-100 p-2 rounded text-sm font-mono text-center tracking-wider text-gray-800 border"
+                            id="backupSuccessId"></div>
+                        <button onclick="copyToClipboard('backupSuccessId', 'copyBtnId')" id="copyBtnId"
+                            class="text-teal-600 hover:text-teal-800 p-2 border border-teal-200 rounded bg-teal-50 hover:bg-teal-100 transition"
+                            title="העתק מזהה">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">מפתח עריכה (Edit Key)</label>
+                    <div class="flex items-start gap-2">
+                        <div class="flex-1 bg-gray-100 p-2 rounded text-sm font-mono break-all text-gray-800 border"
+                            id="backupSuccessKey"></div>
+                        <button onclick="copyToClipboard('backupSuccessKey', 'copyBtnKey')" id="copyBtnKey"
+                            class="text-teal-600 hover:text-teal-800 p-2 border border-teal-200 rounded bg-teal-50 hover:bg-teal-100 transition shrink-0"
+                            title="העתק מפתח עריכה">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm text-yellow-800">
+                    <p class="font-bold mb-1">הם נשמרו אוטומטית בהגדרות שלך.</p>
+                    <p>⚠️ שמור אותם במקום בטוח כדי שתוכל לשחזר בעתיד.</p>
+                </div>
+                <button onclick="closeBackupSuccessModal()"
+                    class="w-full bg-teal-600 text-white py-3 rounded-lg font-bold hover:bg-teal-700 shadow-md transition">
+                    הבנתי, תודה
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Included scripts representing the separated components -->
+    <script>
+// ───── State ─────
+let bills = [];
+let initialSettings = { top: null, bottom: null };
+let editingBillId = null;
+
+function saveData() {
+    localStorage.setItem('elecBills', JSON.stringify(bills));
+}
+
+function hasInitialReadings() {
+    return initialSettings.top !== null && initialSettings.bottom !== null;
+}
+
+function resetAllData() {
+    if (confirm('אזהרה: פעולה זו תמחק את כל החשבונות ואת כל ההגדרות מהמכשיר הזה.\nהאם את/ה בטוח/ה?')) {
+        if (confirm('האם אתה באמת בטוח? הנתונים יימחקו ולא ניתן יהיה לשחזר אותם.')) {
+            localStorage.removeItem('elecBills');
+            localStorage.removeItem('elecSettings');
+            bills = [];
+            initialSettings = { top: null, bottom: null };
+            renderSettings();
+            renderBills();
+            updateInitBanner();
+            alert('כל הנתונים נמחקו בהצלחה.');
+        }
+    }
+}
+
+</script>
+    <script>
+// ───── JSONHosting Cloud Backup ─────
+const JSONHOSTING_API = 'https://jsonhosting.com/api/json';
+
+function showCloudStatus(message, isError = false) {
+    const el = document.getElementById('cloudStatus');
+    el.textContent = message;
+    el.className = `text-xs text-center py-1 rounded mt-2 ${isError ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`;
+    el.classList.remove('hidden');
+}
+
+async function loadFromCloud() {
+    let backupId = document.getElementById('cloudBackupId').value.trim();
+
+    // Auto-extract ID if user pasted a full JSONHosting URL
+    if (backupId.includes('jsonhosting.com')) {
+        const matches = backupId.match(/\/api\/json\/([a-zA-Z0-9]+)/) || backupId.match(/\/get\/([a-zA-Z0-9]+)/);
+        if (matches && matches[1]) {
+            backupId = matches[1];
+            document.getElementById('cloudBackupId').value = backupId;
+        }
+    }
+
+    if (!backupId) {
+        showCloudStatus('יש להזין מזהה (ID) כדי לטעון נתונים.', true);
+        return;
+    }
+
+    showCloudStatus('טוען נתונים מהענן...');
+    try {
+        const url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/' + backupId + '/raw')}`;
+        const res = await fetch(url);
+        if (!res.ok) {
+            if (res.status === 404) throw new Error('גיבוי לא נמצא. בדוק את המזהה שלך.');
+            throw new Error(`שגיאה בטעינה: ${res.status}`);
+        }
+
+        const json = await res.json();
+        const data = typeof json === 'string' ? JSON.parse(json) : json;
+
+        // Support both structured {bills, settings} and legacy flat array
+        const cloudBills = data.bills || (Array.isArray(data) ? data : null);
+        const cloudSettings = data.settings;
+
+        if (cloudBills && Array.isArray(cloudBills)) {
+            bills = cloudBills;
+            localStorage.setItem('elecBills', JSON.stringify(bills));
+        }
+        if (cloudSettings) {
+            initialSettings = cloudSettings;
+            localStorage.setItem('elecSettings', JSON.stringify(initialSettings));
+        }
+
+        bills.sort((a, b) => new Date(a.date) - new Date(b.date));
+        renderSettings();
+        renderBills();
+        updateInitBanner();
+
+        localStorage.setItem('elecCloudBackupId', backupId);
+        showCloudStatus('הנתונים נטענו בהצלחה מהענן! ✓');
+    } catch (err) {
+        if (err.message === 'Failed to fetch') {
+            showCloudStatus('שגיאת רשת: לא ניתן להתחבר לשרת הגיבוי.', true);
+        } else {
+            showCloudStatus(err.message, true);
+        }
+    }
+}
+
+async function saveToCloud() {
+    let backupId = document.getElementById('cloudBackupId').value.trim();
+    const accessKey = document.getElementById('cloudAccessKey').value.trim();
+
+    // Auto-extract ID if user pasted a full JSONHosting URL
+    if (backupId.includes('jsonhosting.com')) {
+        const matches = backupId.match(/\/api\/json\/([a-zA-Z0-9]+)/) || backupId.match(/\/get\/([a-zA-Z0-9]+)/);
+        if (matches && matches[1]) {
+            backupId = matches[1];
+            document.getElementById('cloudBackupId').value = backupId;
+        }
+    }
+
+    if (backupId && !accessKey) {
+        showCloudStatus('כדי לעדכן גיבוי קיים יש להכניס את ה-Edit Key. לגיבוי חדש, מחק את המזהה.', true);
+        return;
+    }
+
+    const payload = JSON.stringify({
+        bills: bills,
+        settings: initialSettings
+    });
+
+    showCloudStatus('שומר נתונים לענן...');
+    try {
+        let url, method, body;
+        const headers = { 'Content-Type': 'application/json' };
+
+        if (backupId) {
+            // Update existing backup
+            url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/' + backupId)}`;
+            method = 'PUT';
+            body = JSON.stringify({
+                editKey: accessKey,
+                data: payload
+            });
+        } else {
+            // Create new backup
+            url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/save')}`;
+            method = 'POST';
+            body = payload;
+        }
+
+        const res = await fetch(url, { method, headers, body });
+        if (!res.ok) throw new Error('שגיאה בפעולת הגיבוי. בדוק את המזהה ואת מפתח העריכה.');
+
+        if (method === 'POST') {
+            const data = await res.json();
+            const newId = data.id;
+            const newEditKey = data.editKey;
+
+            document.getElementById('cloudBackupId').value = newId;
+            document.getElementById('cloudAccessKey').value = newEditKey;
+
+            localStorage.setItem('elecCloudBackupId', newId);
+            localStorage.setItem('elecCloudAccessKey', newEditKey);
+
+            showBackupSuccessModal(newId, newEditKey);
+            showCloudStatus('גיבוי חדש נוצר בהצלחה! ✓');
+        } else {
+            localStorage.setItem('elecCloudBackupId', backupId);
+            localStorage.setItem('elecCloudAccessKey', accessKey);
+            showCloudStatus('הנתונים עודכנו בענן בהצלחה! ✓');
+        }
+    } catch (err) {
+        if (err.message === 'Failed to fetch') {
+            showCloudStatus('שגיאת רשת: לא ניתן להתחבר לשרת הגיבוי.', true);
+        } else {
+            showCloudStatus(err.message, true);
+        }
+    }
+}
+
+function toggleApiKeyVisibility() {
+    const keyInput = document.getElementById('cloudAccessKey');
+    const eyeIcon = document.getElementById('apiKeyEyeIcon');
+
+    if (keyInput.type === 'password') {
+        keyInput.type = 'text';
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
+    } else {
+        keyInput.type = 'password';
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
+    }
+}
+
+</script>
+    <script>
+// ───── CSV Export ─────
+function exportToCSV() {
+    if (bills.length === 0) { alert("אין נתונים לייצוא"); return; }
+
+    let csv = "\uFEFF"; // BOM for Excel Hebrew
+    csv += "תאריך,חשבון ראשי - סכום,חשבון ראשי - קוטש,דירה עליונה - קריאה,דירה עליונה - צריכה,דירה עליונה - לתשלום,דירה תחתונה - קריאה,דירה תחתונה - צריכה,דירה תחתונה - לתשלום,רכוש משותף - קוטש,רכוש משותף - לתשלום\n";
+
+    let prevTop = initialSettings.top;
+    let prevBottom = initialSettings.bottom;
+
+    bills.forEach(bill => {
+        const rate = bill.main.kwh > 0 ? bill.main.amount / bill.main.kwh : 0;
+        const consTop = bill.readings.top - prevTop;
+        const consBottom = bill.readings.bottom - prevBottom;
+        const payTop = consTop * rate;
+        const payBottom = consBottom * rate;
+        const commonKwh = bill.main.kwh - (consTop + consBottom);
+        const commonPay = commonKwh * rate;
+
+        csv += [
+            bill.date, bill.main.amount, bill.main.kwh,
+            bill.readings.top, consTop, payTop.toFixed(2),
+            bill.readings.bottom, consBottom, payBottom.toFixed(2),
+            commonKwh, commonPay.toFixed(2)
+        ].join(",") + "\n";
+
+        prevTop = bill.readings.top;
+        prevBottom = bill.readings.bottom;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "electricity_data.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// ───── CSV Import ─────
+function importFromCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            const text = e.target.result.replace(/^\uFEFF/, ''); // strip BOM
+            const lines = text.split('\n').filter(l => l.trim() !== '');
+
+            if (lines.length < 2) {
+                alert('הקובץ ריק או לא תקין.');
+                return;
+            }
+
+            // Skip header row
+            const dataLines = lines.slice(1);
+            let imported = 0;
+            let skipped = 0;
+
+            dataLines.forEach(line => {
+                const cols = line.split(',');
+                if (cols.length < 9) { skipped++; return; }
+
+                const date = cols[0].trim();
+                const amount = parseFloat(cols[1]);
+                const kwh = parseFloat(cols[2]);
+                const readingTop = parseFloat(cols[3]);
+                const readingBottom = parseFloat(cols[6]);
+
+                // Validate parsed values
+                if (!date || isNaN(amount) || isNaN(kwh) || isNaN(readingTop) || isNaN(readingBottom)) {
+                    skipped++;
+                    return;
+                }
+
+                // Skip if a bill with the same date already exists
+                if (bills.some(b => b.date === date)) {
+                    skipped++;
+                    return;
+                }
+
+                bills.push({
+                    id: Date.now() + Math.random(),
+                    date: date,
+                    main: { amount: amount, kwh: kwh },
+                    readings: { top: readingTop, bottom: readingBottom }
+                });
+                imported++;
+            });
+
+            bills.sort((a, b) => new Date(a.date) - new Date(b.date));
+            saveData();
+            renderBills();
+
+            alert(`ייבוא הושלם: ${imported} חשבונות יובאו, ${skipped} שורות דולגו.`);
+        } catch (err) {
+            alert('שגיאה בקריאת הקובץ: ' + err.message);
+        }
+    };
+    reader.readAsText(file, 'UTF-8');
+    // Reset file input so same file can be picked again
+    event.target.value = '';
+}
+
+</script>
+    <script>
+// ───── Settings ─────
+function toggleSettings() {
+    document.getElementById('settingsPanel').classList.toggle('hidden');
+}
+
+function saveSettings() {
+    const topVal = document.getElementById('initReadingTop').value;
+    const bottomVal = document.getElementById('initReadingBottom').value;
+    if (topVal) initialSettings.top = parseFloat(topVal);
+    if (bottomVal) initialSettings.bottom = parseFloat(bottomVal);
+    saveSettingsState(); // from state.js
+    renderBills();
+    alert('הגדרות נשמרו בהצלחה');
+}
+
+function saveSettingsState() {
+    localStorage.setItem('elecSettings', JSON.stringify(initialSettings));
+}
+
+function renderSettings() {
+    document.getElementById('initReadingTop').value = initialSettings.top ?? '';
+    document.getElementById('initReadingBottom').value = initialSettings.bottom ?? '';
+}
+
+function updateInitBanner() {
+    const banner = document.getElementById('initReadingsBanner');
+    if (!hasInitialReadings() && bills.length === 0) {
+        banner.classList.remove('hidden');
+    } else {
+        banner.classList.add('hidden');
+    }
+}
+
+// ───── Initial Readings Modal ─────
+function openInitReadingsModal() {
+    document.getElementById('initReadingsModal').classList.remove('hidden');
+    document.getElementById('initFormErrors').classList.add('hidden');
+    document.getElementById('initTopInput').value = '';
+    document.getElementById('initBottomInput').value = '';
+}
+
+function closeInitReadingsModal() {
+    document.getElementById('initReadingsModal').classList.add('hidden');
+}
+
+function handleInitReadingsSubmit(e) {
+    e.preventDefault();
+    const topVal = parseFloat(document.getElementById('initTopInput').value);
+    const bottomVal = parseFloat(document.getElementById('initBottomInput').value);
+    const errors = [];
+
+    if (isNaN(topVal)) errors.push('יש להזין קריאת מונה עליונה.');
+    if (isNaN(bottomVal)) errors.push('יש להזין קריאת מונה תחתונה.');
+
+    if (errors.length > 0) {
+        const container = document.getElementById('initFormErrors');
+        const list = document.getElementById('initFormErrorList');
+        list.innerHTML = errors.map(err => `<li>${err}</li>`).join('');
+        container.classList.remove('hidden');
+        return;
+    }
+
+    initialSettings.top = topVal;
+    initialSettings.bottom = bottomVal;
+    saveSettingsState();
+    renderSettings();
+    closeInitReadingsModal();
+    updateInitBanner();
+    openModal(); // Open main bill modal
+}
+
+// ───── Modal (Add / Edit) ─────
+function openModal(billId = null) {
+    if (!billId && !hasInitialReadings()) {
+        openInitReadingsModal();
+        return;
+    }
+    document.getElementById('billModal').classList.remove('hidden');
+    hideFormErrors();
+    const modalTitle = document.getElementById('modalTitle');
+
+    let prevTop = initialSettings.top;
+    let prevBottom = initialSettings.bottom;
+
+    if (billId) {
+        editingBillId = billId;
+        modalTitle.innerText = "עריכת חשבון";
+        const bill = bills.find(b => b.id === billId);
+        document.getElementById('billDate').value = bill.date;
+        document.getElementById('mainAmount').value = bill.main.amount;
+        document.getElementById('mainKwh').value = bill.main.kwh;
+        document.getElementById('readingTop').value = bill.readings.top;
+        document.getElementById('readingBottom').value = bill.readings.bottom;
+
+        const idx = bills.findIndex(b => b.id === billId);
+        if (idx > 0) {
+            prevTop = bills[idx - 1].readings.top;
+            prevBottom = bills[idx - 1].readings.bottom;
+        }
+    } else {
+        editingBillId = null;
+        modalTitle.innerText = "הוספת חשבון חדש";
+        document.getElementById('billDate').valueAsDate = new Date();
+        document.getElementById('mainAmount').value = '';
+        document.getElementById('mainKwh').value = '';
+        document.getElementById('readingTop').value = '';
+        document.getElementById('readingBottom').value = '';
+
+        if (bills.length > 0) {
+            const last = bills[bills.length - 1];
+            prevTop = last.readings.top;
+            prevBottom = last.readings.bottom;
+        }
+    }
+
+    document.getElementById('prevTopDisplay').innerText = prevTop;
+    document.getElementById('prevBottomDisplay').innerText = prevBottom;
+}
+
+function closeModal() {
+    document.getElementById('billModal').classList.add('hidden');
+    editingBillId = null;
+}
+
+// ───── Validation ─────
+function validateForm(formDate, formAmount, formKwh, formTop, formBottom) {
+    const errors = [];
+
+    let prevTop = initialSettings.top;
+    let prevBottom = initialSettings.bottom;
+
+    if (editingBillId) {
+        const idx = bills.findIndex(b => b.id === editingBillId);
+        if (idx > 0) {
+            prevTop = bills[idx - 1].readings.top;
+            prevBottom = bills[idx - 1].readings.bottom;
+        }
+    } else {
+        if (bills.length > 0) {
+            const last = bills[bills.length - 1];
+            prevTop = last.readings.top;
+            prevBottom = last.readings.bottom;
+        }
+    }
+
+    if (!formKwh || formKwh <= 0) {
+        errors.push('צריכה כללית (קוט"ש) חייבת להיות גדולה מ-0.');
+    }
+
+    if (!formAmount || formAmount <= 0) {
+        errors.push('סכום לתשלום חייב להיות גדול מ-0.');
+    }
+
+    if (formTop < prevTop) {
+        errors.push(`קריאת מונה עליונה (${formTop}) קטנה מהקריאה הקודמת (${prevTop}). צריכה שלילית אינה אפשרית.`);
+    }
+
+    if (formBottom < prevBottom) {
+        errors.push(`קריאת מונה תחתונה (${formBottom}) קטנה מהקריאה הקודמת (${prevBottom}). צריכה שלילית אינה אפשרית.`);
+    }
+
+    const consTop = formTop - prevTop;
+    const consBottom = formBottom - prevBottom;
+    const totalTenants = consTop + consBottom;
+    if (formKwh > 0 && totalTenants > formKwh) {
+        errors.push(`סך צריכת הדירות (${totalTenants} קוט"ש) עולה על הצריכה הכללית (${formKwh} קוט"ש). בדקי את הנתונים.`);
+    }
+
+    return errors;
+}
+
+function showFormErrors(errors) {
+    const container = document.getElementById('formErrors');
+    const list = document.getElementById('formErrorList');
+    list.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+    container.classList.remove('hidden');
+}
+
+function hideFormErrors() {
+    document.getElementById('formErrors').classList.add('hidden');
+}
+
+// ───── Form Submit ─────
+function handleFormSubmit(e) {
+    e.preventDefault();
+
+    const formDate = document.getElementById('billDate').value;
+    const formAmount = parseFloat(document.getElementById('mainAmount').value);
+    const formKwh = parseFloat(document.getElementById('mainKwh').value);
+    const formTop = parseFloat(document.getElementById('readingTop').value);
+    const formBottom = parseFloat(document.getElementById('readingBottom').value);
+
+    const errors = validateForm(formDate, formAmount, formKwh, formTop, formBottom);
+    if (errors.length > 0) {
+        showFormErrors(errors);
+        return;
+    }
+    hideFormErrors();
+
+    if (editingBillId) {
+        bills = bills.map(b => {
+            if (b.id === editingBillId) {
+                return { ...b, date: formDate, main: { amount: formAmount, kwh: formKwh }, readings: { top: formTop, bottom: formBottom } };
+            }
+            return b;
+        });
+    } else {
+        bills.push({
+            id: Date.now() + Math.random(),
+            date: formDate,
+            main: { amount: formAmount, kwh: formKwh },
+            readings: { top: formTop, bottom: formBottom }
+        });
+    }
+
+    bills.sort((a, b) => new Date(a.date) - new Date(b.date));
+    saveData();
+    closeModal();
+    renderBills();
+}
+
+function deleteBill(id) {
+    if (confirm('האם את בטוחה שברצונך למחוק שורה זו?')) {
+        bills = bills.filter(b => b.id !== id);
+        saveData();
+        renderBills();
+    }
+}
+
+// ───── Render Bills ─────
+function renderBills() {
+    const container = document.getElementById('billsList');
+    const emptyState = document.getElementById('emptyState');
+    container.innerHTML = '';
+
+    if (bills.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+    }
+    emptyState.classList.add('hidden');
+
+    let prevTop = initialSettings.top;
+    let prevBottom = initialSettings.bottom;
+
+    bills.forEach((bill) => {
+        const rate = bill.main.kwh > 0 ? bill.main.amount / bill.main.kwh : 0;
+
+        const consTop = bill.readings.top - prevTop;
+        const consBottom = bill.readings.bottom - prevBottom;
+
+        const payTop = consTop * rate;
+        const payBottom = consBottom * rate;
+
+        const commonKwh = bill.main.kwh - (consTop + consBottom);
+        const commonPay = commonKwh * rate;
+
+        const dateObj = new Date(bill.date);
+        const dateStr = dateObj.toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        const hasWarning = consTop < 0 || consBottom < 0 || commonKwh < 0;
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-xl p-0 card-shadow overflow-hidden';
+        card.innerHTML = `
+            <div class="bg-gray-100 p-3 flex justify-between items-center border-b">
+                <span class="font-bold text-gray-700">${dateStr}</span>
+                <div class="flex gap-2">
+                    <button onclick="openModal(${bill.id})" class="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1 bg-white px-2 py-1 rounded border border-blue-200">
+                        <i class="fas fa-edit"></i> עריכה
+                    </button>
+                    <button onclick="deleteBill(${bill.id})" class="text-red-400 hover:text-red-600 text-sm bg-white px-2 py-1 rounded border border-red-100">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            ${hasWarning ? `
+            <div class="bg-yellow-50 border-b border-yellow-200 px-4 py-2 text-xs text-yellow-800 flex items-center gap-1">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>ערכים חריגים — בדקי את הקריאות.</span>
+            </div>` : ''}
+
+            <div class="p-4">
+                <div class="flex justify-between mb-4 text-sm bg-gray-50 p-2 rounded">
+                    <div class="text-center">
+                        <div class="text-gray-500 text-xs">תעריף לקוט"ש</div>
+                        <div class="font-bold">${rate.toFixed(4)} ₪</div>
+                    </div>
+                    <div class="text-center border-r border-l px-2">
+                        <div class="text-gray-500 text-xs">סה"כ חשבון</div>
+                        <div class="font-bold">${bill.main.amount.toFixed(2)} ₪</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-gray-500 text-xs">צריכה כללית</div>
+                        <div class="font-bold">${bill.main.kwh} קוט"ש</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="border rounded-lg p-3 border-green-200 bg-green-50 relative">
+                        <div class="absolute -top-2 right-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded">עליונה</div>
+                        <div class="mt-2 text-center">
+                            <span class="block text-2xl font-bold text-green-800">${payTop.toFixed(2)} ₪</span>
+                            <span class="text-xs text-green-700">לתשלום</span>
+                        </div>
+                        <div class="mt-3 text-xs text-green-800 flex justify-between border-t border-green-200 pt-2">
+                            <span>צריכה: <b>${consTop}</b></span>
+                            <span>קריאה: ${bill.readings.top}</span>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg p-3 border-blue-200 bg-blue-50 relative">
+                        <div class="absolute -top-2 right-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded">תחתונה</div>
+                        <div class="mt-2 text-center">
+                            <span class="block text-2xl font-bold text-blue-800">${payBottom.toFixed(2)} ₪</span>
+                            <span class="text-xs text-blue-700">לתשלום</span>
+                        </div>
+                        <div class="mt-3 text-xs text-blue-800 flex justify-between border-t border-blue-200 pt-2">
+                            <span>צריכה: <b>${consBottom}</b></span>
+                            <span>קריאה: ${bill.readings.bottom}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border rounded-lg p-3 ${commonKwh < 0 ? 'border-red-200 bg-red-50' : 'border-orange-200 bg-orange-50'} relative">
+                    <div class="absolute -top-2 right-2 ${commonKwh < 0 ? 'bg-red-600' : 'bg-orange-500'} text-white text-xs px-2 py-0.5 rounded">רכוש משותף</div>
+                    <div class="mt-2 flex justify-between items-center">
+                        <div class="text-center flex-1">
+                            <span class="block text-lg font-bold ${commonKwh < 0 ? 'text-red-800' : 'text-orange-800'}">${commonKwh} קוט"ש</span>
+                            <span class="text-xs ${commonKwh < 0 ? 'text-red-600' : 'text-orange-600'}">צריכה משותפת</span>
+                        </div>
+                        <div class="text-center flex-1 border-r pr-3">
+                            <span class="block text-lg font-bold ${commonKwh < 0 ? 'text-red-800' : 'text-orange-800'}">${commonPay.toFixed(2)} ₪</span>
+                            <span class="text-xs ${commonKwh < 0 ? 'text-red-600' : 'text-orange-600'}">עלות</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(card);
+
+        prevTop = bill.readings.top;
+        prevBottom = bill.readings.bottom;
+    });
+}
+
+// ───── Backup Success Modal ─────
+function showBackupSuccessModal(id, editKey) {
+    document.getElementById('backupSuccessId').textContent = id;
+    document.getElementById('backupSuccessKey').textContent = editKey;
+
+    // Reset copy icons
+    document.getElementById('copyBtnId').innerHTML = '<i class="fas fa-copy"></i>';
+    document.getElementById('copyBtnKey').innerHTML = '<i class="fas fa-copy"></i>';
+
+    document.getElementById('backupSuccessModal').classList.remove('hidden');
+}
+
+function closeBackupSuccessModal() {
+    document.getElementById('backupSuccessModal').classList.add('hidden');
+}
+
+function copyToClipboard(elementId, btnId) {
+    const textToCopy = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        const btn = document.getElementById(btnId);
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check text-green-600"></i>';
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+}
+
+</script>
+    <script>
+// ───── Init ─────
+document.addEventListener('DOMContentLoaded', () => {
+    const savedBills = localStorage.getItem('elecBills');
+    const savedSettings = localStorage.getItem('elecSettings');
+    const savedCloudId = localStorage.getItem('elecCloudBackupId');
+    const savedCloudKey = localStorage.getItem('elecCloudAccessKey');
+
+    if (savedBills) bills = JSON.parse(savedBills);
+    if (savedSettings) initialSettings = JSON.parse(savedSettings);
+    if (savedCloudId) document.getElementById('cloudBackupId').value = savedCloudId;
+    if (savedCloudKey) document.getElementById('cloudAccessKey').value = savedCloudKey;
+
+    bills.sort((a, b) => new Date(a.date) - new Date(b.date));
+    renderSettings();
+    renderBills();
+    updateInitBanner();
+});
+
+</script>
+</body>
+
+</html>
