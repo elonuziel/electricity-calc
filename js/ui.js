@@ -217,6 +217,9 @@ function handleFormSubmit(e) {
     saveData();
     closeModal();
     renderBills();
+
+    // Auto-save to cloud after adding/editing a bill (silently, if ID + key are saved)
+    autoSaveToCloud();
 }
 
 function deleteBill(id) {

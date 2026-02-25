@@ -1,6 +1,55 @@
 // ───── JSONHosting Cloud Backup ─────
 const JSONHOSTING_API = 'https://jsonhosting.com/api/json';
 
+// ── Silent Auto-Load: on startup, pull cloud data if an ID is saved ──
+async function autoLoadFromCloud() {
+    const backupId = localStorage.getItem('elecCloudBackupId');
+    if (!backupId) return; // No ID saved, nothing to do
+    try {
+        const url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/' + backupId + '/raw')}`;
+        const res = await fetch(url);
+        if (!res.ok) return; // Quietly fail (offline or bad ID)
+        const json = await res.json();
+        const data = typeof json === 'string' ? JSON.parse(json) : json;
+        const cloudBills = data.bills || (Array.isArray(data) ? data : null);
+        const cloudSettings = data.settings;
+        if (cloudBills && Array.isArray(cloudBills)) {
+            bills = cloudBills;
+            localStorage.setItem('elecBills', JSON.stringify(bills));
+        }
+        if (cloudSettings) {
+            initialSettings = cloudSettings;
+            localStorage.setItem('elecSettings', JSON.stringify(initialSettings));
+        }
+        bills.sort((a, b) => new Date(a.date) - new Date(b.date));
+        renderSettings();
+        renderBills();
+        updateInitBanner();
+        console.log('Auto-sync: loaded from cloud ✓');
+    } catch (err) {
+        console.log('Auto-sync load skipped (offline or error):', err.message);
+    }
+}
+
+// ── Silent Auto-Save: after a bill is saved, push to cloud if ID + key are saved ──
+async function autoSaveToCloud() {
+    const backupId = localStorage.getItem('elecCloudBackupId');
+    const accessKey = localStorage.getItem('elecCloudAccessKey');
+    if (!backupId || !accessKey) return; // Need both to save
+    try {
+        const payload = JSON.stringify({ bills, settings: initialSettings });
+        const url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/' + backupId)}`;
+        const res = await fetch(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ editKey: accessKey, data: payload })
+        });
+        if (res.ok) console.log('Auto-sync: saved to cloud ✓');
+    } catch (err) {
+        console.log('Auto-sync save skipped (offline or error):', err.message);
+    }
+}
+
 function showCloudStatus(message, isError = false) {
     const el = document.getElementById('cloudStatus');
     el.textContent = message;

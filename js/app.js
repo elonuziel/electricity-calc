@@ -14,4 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSettings();
     renderBills();
     updateInitBanner();
+
+    // Auto-load from cloud on startup (silently, if ID is saved)
+    autoLoadFromCloud();
 });
