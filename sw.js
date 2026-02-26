@@ -15,10 +15,7 @@ const ASSETS_TO_CACHE = [
     './js/services/cloud.js',
     './js/services/csv.js',
     './icon-192.png',
-    './icon-512.png',
-    './apple-icon-180.png',
-    './manifest-icon-192.maskable.png',
-    './manifest-icon-512.maskable.png'
+    './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
