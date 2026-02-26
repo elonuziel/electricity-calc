@@ -1,5 +1,20 @@
 // ───── JSONHosting Cloud Backup ─────
 const JSONHOSTING_API = 'https://jsonhosting.com/api/json';
+let autoSyncErrorShown = false;
+
+function getCloudErrorMessage(status) {
+    if (status === 401 || status === 403) return 'אין הרשאה לגיבוי בענן. בדוקי את ה-Edit Key.';
+    if (status === 404) return 'גיבוי לא נמצא. בדוקי את המזהה שלך.';
+    if (status === 429) return 'חרגת ממכסת הבקשות של שירות הגיבוי. נסי שוב מאוחר יותר.';
+    if (status >= 500) return 'שגיאת שרת בגיבוי. נסי שוב מאוחר יותר.';
+    return `שגיאה בשירות הגיבוי (${status}).`;
+}
+
+function showAutoSyncError(message) {
+    if (autoSyncErrorShown) return;
+    autoSyncErrorShown = true;
+    showCloudStatus(message, true);
+}
 
 // ── Silent Auto-Load: on startup, pull cloud data if an ID is saved ──
 async function autoLoadFromCloud() {
@@ -8,7 +23,10 @@ async function autoLoadFromCloud() {
     try {
         const url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/' + backupId + '/raw')}`;
         const res = await fetch(url);
-        if (!res.ok) return; // Quietly fail (offline or bad ID)
+        if (!res.ok) {
+            showAutoSyncError(`${getCloudErrorMessage(res.status)} משתמשים בנתונים המקומיים.`);
+            return;
+        }
         const json = await res.json();
         const data = typeof json === 'string' ? JSON.parse(json) : json;
         const cloudBills = data.bills || (Array.isArray(data) ? data : null);
@@ -27,6 +45,11 @@ async function autoLoadFromCloud() {
         updateInitBanner();
         console.log('Auto-sync: loaded from cloud ✓');
     } catch (err) {
+        if (err.message === 'Failed to fetch') {
+            showAutoSyncError('שגיאת רשת: לא ניתן להתחבר לשרת הגיבוי. משתמשים בנתונים המקומיים.');
+        } else {
+            showAutoSyncError(`${err.message} משתמשים בנתונים המקומיים.`);
+        }
         console.log('Auto-sync load skipped (offline or error):', err.message);
     }
 }
@@ -44,14 +67,24 @@ async function autoSaveToCloud() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ editKey: accessKey, data: payload })
         });
-        if (res.ok) console.log('Auto-sync: saved to cloud ✓');
+        if (!res.ok) {
+            showAutoSyncError(`${getCloudErrorMessage(res.status)} הנתונים נשמרו מקומית בלבד.`);
+            return;
+        }
+        console.log('Auto-sync: saved to cloud ✓');
     } catch (err) {
+        if (err.message === 'Failed to fetch') {
+            showAutoSyncError('שגיאת רשת: לא ניתן להתחבר לשרת הגיבוי. הנתונים נשמרו מקומית בלבד.');
+        } else {
+            showAutoSyncError(`${err.message} הנתונים נשמרו מקומית בלבד.`);
+        }
         console.log('Auto-sync save skipped (offline or error):', err.message);
     }
 }
 
 function showCloudStatus(message, isError = false) {
     const el = document.getElementById('cloudStatus');
+    if (!el) return;
     el.textContent = message;
     el.className = `text-xs text-center py-1 rounded mt-2 ${isError ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`;
     el.classList.remove('hidden');
@@ -79,8 +112,7 @@ async function loadFromCloud() {
         const url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/' + backupId + '/raw')}`;
         const res = await fetch(url);
         if (!res.ok) {
-            if (res.status === 404) throw new Error('גיבוי לא נמצא. בדוק את המזהה שלך.');
-            throw new Error(`שגיאה בטעינה: ${res.status}`);
+            throw new Error(getCloudErrorMessage(res.status));
         }
 
         const json = await res.json();
@@ -108,9 +140,9 @@ async function loadFromCloud() {
         showCloudStatus('הנתונים נטענו בהצלחה מהענן! ✓');
     } catch (err) {
         if (err.message === 'Failed to fetch') {
-            showCloudStatus('שגיאת רשת: לא ניתן להתחבר לשרת הגיבוי.', true);
+            showCloudStatus('שגיאת רשת: לא ניתן להתחבר לשרת הגיבוי. משתמשים בנתונים המקומיים.', true);
         } else {
-            showCloudStatus(err.message, true);
+            showCloudStatus(`${err.message} משתמשים בנתונים המקומיים.`, true);
         }
     }
 }
@@ -159,7 +191,7 @@ async function saveToCloud() {
         }
 
         const res = await fetch(url, { method, headers, body });
-        if (!res.ok) throw new Error('שגיאה בפעולת הגיבוי. בדוק את המזהה ואת מפתח העריכה.');
+        if (!res.ok) throw new Error(getCloudErrorMessage(res.status));
 
         if (method === 'POST') {
             const data = await res.json();
@@ -181,9 +213,9 @@ async function saveToCloud() {
         }
     } catch (err) {
         if (err.message === 'Failed to fetch') {
-            showCloudStatus('שגיאת רשת: לא ניתן להתחבר לשרת הגיבוי.', true);
+            showCloudStatus('שגיאת רשת: לא ניתן להתחבר לשרת הגיבוי. הנתונים נשמרו מקומית בלבד.', true);
         } else {
-            showCloudStatus(err.message, true);
+            showCloudStatus(`${err.message} הנתונים נשמרו מקומית בלבד.`, true);
         }
     }
 }
