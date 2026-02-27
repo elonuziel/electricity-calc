@@ -16,8 +16,16 @@ function resetAllData() {
         if (confirm('האם אתה באמת בטוח? הנתונים יימחקו ולא ניתן יהיה לשחזר אותם.')) {
             localStorage.removeItem('elecBills');
             localStorage.removeItem('elecSettings');
+            localStorage.removeItem('elecCloudBackupId');
+            localStorage.removeItem('elecCloudAccessKey');
             bills = [];
             initialSettings = { top: null, bottom: null };
+
+            document.getElementById('cloudBackupId').value = '';
+            document.getElementById('cloudAccessKey').value = '';
+            const cloudStatus = document.getElementById('cloudStatus');
+            if (cloudStatus) cloudStatus.classList.add('hidden');
+
             renderSettings();
             renderBills();
             updateInitBanner();
