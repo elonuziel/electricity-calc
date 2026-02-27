@@ -1,10 +1,20 @@
-name: Build Debug APK
+name: Build & Release APK
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -13,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -28,6 +40,78 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Bump version in package.json
+        id: bump_version
+        run: |
+          npm version ${{ github.event.inputs.bump_type }} --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate Changelog
+        id: changelog
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_TAG="v${{ steps.bump_version.outputs.version }}"
+
+          # Get the last release tag
+          LAST_TAG=$(git tag --sort=-version:refname | head -n 1)
+
+          if [ -z "$LAST_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s" HEAD)
+          else
+            COMMITS=$(git log --pretty=format:"- %s" "${LAST_TAG}..HEAD")
+          fi
+
+          if [ -z "$COMMITS" ]; then
+            COMMITS="- Maintenance and improvements"
+          fi
+
+          # Write a clean summary grouping lines into categories
+          FEATURES=""
+          FIXES=""
+          OTHER=""
+
+          while IFS= read -r line; do
+            lower=$(echo "$line" | tr '[:upper:]' '[:lower:]')
+            if echo "$lower" | grep -qE "^- (feat|add|new|improv|updat|enhanc)"; then
+              FEATURES="$FEATURES\n$line"
+            elif echo "$lower" | grep -qE "^- (fix|bug|patch|resolv|correct|revert)"; then
+              FIXES="$FIXES\n$line"
+            else
+              OTHER="$OTHER\n$line"
+            fi
+          done <<< "$COMMITS"
+
+          BODY=""
+          if [ -n "$FEATURES" ]; then
+            BODY="$BODY\n### ⚡ Improvements\n$FEATURES\n"
+          fi
+          if [ -n "$FIXES" ]; then
+            BODY="$BODY\n### 🐛 Fixes\n$FIXES\n"
+          fi
+          if [ -n "$OTHER" ]; then
+            BODY="$BODY\n### 🔧 Other Changes\n$OTHER\n"
+          fi
+
+          # Fallback
+          if [ -z "$BODY" ]; then
+            BODY="- General updates and improvements"
+          fi
+
+          # Save to file for later step (avoids multiline env issues)
+          printf "%b" "$BODY" > changelog.txt
+          echo "Generated changelog:"
+          cat changelog.txt
+
+      - name: Commit version bump and push tag
+        run: |
+          git add package.json
+          git commit -m "chore: bump version to ${{ steps.bump_version.outputs.version }}"
+          git tag ${{ steps.bump_version.outputs.tag }}
+          git push origin HEAD:main --follow-tags
+
       - name: Add Android platform
         run: |
           if [ ! -d "android" ]; then
@@ -40,6 +124,12 @@ jobs:
       - name: Sync web assets into Android project
         run: npx cap sync android
 
+      - name: Inject version into Android build
+        run: |
+          # Set versionName and versionCode in build.gradle
+          sed -i "s/versionName \".*\"/versionName \"${{ steps.bump_version.outputs.version }}\"/" android/app/build.gradle
+          sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" android/app/build.gradle
+
       - name: Make Gradlew executable
         run: chmod +x android/gradlew
 
@@ -47,20 +137,16 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: electricity-calc-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
+      - name: Rename APK with version
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk \
+             electricity-calc-${{ steps.bump_version.outputs.version }}.apk
 
-      - name: Auto-Release APK
+      - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "android/app/build/outputs/apk/debug/app-debug.apk"
-          tag: "latest"
-          name: "Latest APK"
-          generateReleaseNotes: true
-          allowUpdates: true
-          replacesArtifacts: true
+          artifacts: "electricity-calc-${{ steps.bump_version.outputs.version }}.apk"
+          tag: ${{ steps.bump_version.outputs.tag }}
+          name: "Electricity Calc ${{ steps.bump_version.outputs.tag }}"
+          bodyFile: changelog.txt
           token: ${{ secrets.GITHUB_TOKEN }}

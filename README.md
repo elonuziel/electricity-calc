@@ -2,6 +2,10 @@
 
 A single-page Hebrew calculator that splits a shared electricity bill between two apartments (upper / lower) based on individual meter readings.
 
+[![Download APK](https://img.shields.io/github/v/release/elonuziel/electricity-calc?label=Download%20APK&logo=android&color=3DDC84)](https://github.com/elonuziel/electricity-calc/releases/latest)
+
+> 📱 **Android APK available!** Go to the [Releases](https://github.com/elonuziel/electricity-calc/releases/latest) page and download the latest `.apk` file to install directly on your Android device.
+
 ## Features
 
 | Feature | Description |
@@ -50,7 +54,7 @@ $$
 
 ```
 src/                               — Source code used for building the Android APK (Capacitor)
-.github/workflows/                 — GitHub Actions for automated APK builds
+.github/workflows/                 — GitHub Actions for automated APK builds (manual trigger)
 electricity_calc_standalone.html   — Bundled standalone version (Best for daily use on Desktop/iOS)
 old/                               — Legacy versions, old PWA implementation, and backups
 capacitor.config.json              — Capacitor configuration for the APK wrapper
