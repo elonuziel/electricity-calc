@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: write
+  models: read
 
 jobs:
   build:
@@ -95,11 +96,42 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$PAYLOAD" | jq -r '.choices[0].message.content')
 
-          if [ -z "$SUMMARY" ] || [ "$SUMMARY" == "null" ]; then
-              echo "AI Summary failed, falling back to raw commits:"
-              echo "$COMMITS" > changelog.txt
-          else
+          if [ -n "$SUMMARY" ] && [ "$SUMMARY" != "null" ]; then
               echo "$SUMMARY" > changelog.txt
+          else
+              echo "AI Summary failed, falling back to smart keyword grouping..."
+              
+              FEATURES=""
+              FIXES=""
+              OTHER=""
+
+              while IFS= read -r line; do
+                lower=$(echo "$line" | tr '[:upper:]' '[:lower:]')
+                if echo "$lower" | grep -qE "^- (feat|add|new|improv|updat|enhanc)"; then
+                  FEATURES="$FEATURES\n$line"
+                elif echo "$lower" | grep -qE "^- (fix|bug|patch|resolv|correct|revert)"; then
+                  FIXES="$FIXES\n$line"
+                else
+                  OTHER="$OTHER\n$line"
+                fi
+              done <<< "$COMMITS"
+
+              BODY=""
+              if [ -n "$FEATURES" ]; then
+                BODY="$BODY\n### ⚡ Improvements\n$FEATURES\n"
+              fi
+              if [ -n "$FIXES" ]; then
+                BODY="$BODY\n### 🐛 Fixes\n$FIXES\n"
+              fi
+              if [ -n "$OTHER" ]; then
+                BODY="$BODY\n### 🔧 Other Changes\n$OTHER\n"
+              fi
+
+              if [ -z "$BODY" ] || [ "$BODY" == "\n" ]; then
+                BODY="- General updates and improvements"
+              fi
+
+              printf "%b" "$BODY" > changelog.txt
           fi
 
           echo "Generated changelog:"
