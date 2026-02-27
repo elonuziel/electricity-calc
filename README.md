@@ -49,11 +49,12 @@ $$
 ## File Structure
 
 ```
-electricity_calc_standalone.html   — Bundled standalone version (Best for daily use)
-separated_components/              — Modular source code (Best for development)
-old/                               — Legacy versions and backups
+src/                               — Source code used for building the Android APK (Capacitor)
+.github/workflows/                 — GitHub Actions for automated APK builds
+electricity_calc_standalone.html   — Bundled standalone version (Best for daily use on Desktop/iOS)
+old/                               — Legacy versions, old PWA implementation, and backups
+capacitor.config.json              — Capacitor configuration for the APK wrapper
 README.md                          — This file
-LICENSE                            — License
 ```
 
 ## Tech Stack
