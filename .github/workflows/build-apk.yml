@@ -50,3 +50,14 @@ jobs:
           name: electricity-calc-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      - name: Auto-Release APK
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "android/app/build/outputs/apk/debug/app-debug.apk"
+          tag: "latest"
+          name: "Latest APK"
+          body: "Automatically built APK from the latest push to main."
+          allowUpdates: true
+          replacesArtifacts: true
+          token: ${{ secrets.GITHUB_TOKEN }}
