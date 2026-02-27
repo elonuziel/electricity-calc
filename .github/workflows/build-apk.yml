@@ -34,6 +34,9 @@ jobs:
             npx cap add android
           fi
 
+      - name: Generate Custom App Icons
+        run: npx @capacitor/assets generate --assetPath assets --android
+
       - name: Sync web assets into Android project
         run: npx cap sync android
 
@@ -57,7 +60,7 @@ jobs:
           artifacts: "android/app/build/outputs/apk/debug/app-debug.apk"
           tag: "latest"
           name: "Latest APK"
-          body: "Automatically built APK from the latest push to main."
+          generateReleaseNotes: true
           allowUpdates: true
           replacesArtifacts: true
           token: ${{ secrets.GITHUB_TOKEN }}
