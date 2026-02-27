@@ -50,10 +50,8 @@ $$
 
 ```
 electricity_calc_standalone.html   — Bundled standalone version (Best for daily use)
-separated_components/              — Modular source code (Best for development)
+src/              — Modular source code (Best for development)
 old/                               — Legacy versions and backups
-README.md                          — This file
-LICENSE                            — License
 ```
 
 ## Tech Stack
