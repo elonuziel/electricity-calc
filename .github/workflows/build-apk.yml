@@ -53,8 +53,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NEW_TAG="v${{ steps.bump_version.outputs.version }}"
-
           # Get the last release tag
           LAST_TAG=$(git tag --sort=-version:refname | head -n 1)
 
@@ -65,43 +63,45 @@ jobs:
           fi
 
           if [ -z "$COMMITS" ]; then
-            COMMITS="- Maintenance and improvements"
+            echo "- General updates and improvements" > changelog.txt
+            exit 0
           fi
 
-          # Write a clean summary grouping lines into categories
-          FEATURES=""
-          FIXES=""
-          OTHER=""
+          # Escape newlines and quotes for JSON payload
+          # using jq to safely serialize the variable
+          ESCAPED_COMMITS=$(jq -Rs '.' <<< "$COMMITS")
 
-          while IFS= read -r line; do
-            lower=$(echo "$line" | tr '[:upper:]' '[:lower:]')
-            if echo "$lower" | grep -qE "^- (feat|add|new|improv|updat|enhanc)"; then
-              FEATURES="$FEATURES\n$line"
-            elif echo "$lower" | grep -qE "^- (fix|bug|patch|resolv|correct|revert)"; then
-              FIXES="$FIXES\n$line"
-            else
-              OTHER="$OTHER\n$line"
-            fi
-          done <<< "$COMMITS"
+          PAYLOAD=$(cat <<EOF
+          {
+            "model": "gpt-4o-mini",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a helpful assistant that generates clean release notes. Summarize the following git commits into a clean, readable changelog (3-5 bullet points) focusing on user-facing features and bug fixes. Ignore version bumps and obscure chore commits. Do not add markdown headers like 'Changelog'."
+              },
+              {
+                "role": "user",
+                "content": $ESCAPED_COMMITS
+              }
+            ]
+          }
+          EOF
+          )
 
-          BODY=""
-          if [ -n "$FEATURES" ]; then
-            BODY="$BODY\n### ⚡ Improvements\n$FEATURES\n"
-          fi
-          if [ -n "$FIXES" ]; then
-            BODY="$BODY\n### 🐛 Fixes\n$FIXES\n"
-          fi
-          if [ -n "$OTHER" ]; then
-            BODY="$BODY\n### 🔧 Other Changes\n$OTHER\n"
+          # Call GitHub Models built-in endpoint
+          echo "Requesting AI summary..."
+          SUMMARY=$(curl -s "https://models.inference.ai.azure.com/chat/completions" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" | jq -r '.choices[0].message.content')
+
+          if [ -z "$SUMMARY" ] || [ "$SUMMARY" == "null" ]; then
+              echo "AI Summary failed, falling back to raw commits:"
+              echo "$COMMITS" > changelog.txt
+          else
+              echo "$SUMMARY" > changelog.txt
           fi
 
-          # Fallback
-          if [ -z "$BODY" ]; then
-            BODY="- General updates and improvements"
-          fi
-
-          # Save to file for later step (avoids multiline env issues)
-          printf "%b" "$BODY" > changelog.txt
           echo "Generated changelog:"
           cat changelog.txt
 
