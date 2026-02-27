@@ -1,0 +1,9 @@
+# Node
+node_modules/
+
+# Capacitor / Android build outputs
+android/app/build/
+android/.gradle/
+
+# Misc
+.DS_Store
