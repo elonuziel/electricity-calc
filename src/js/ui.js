@@ -10,7 +10,7 @@ function saveSettings() {
     if (bottomVal) initialSettings.bottom = parseFloat(bottomVal);
     saveSettingsState(); // from state.js
     renderBills();
-    showToast(CONFIG.MESSAGES.SETTINGS_SAVED);
+    showToast(CONFIG.MESSAGES.SAVE_SUCCESS);
     updateEmptyStateMessage();
 }
 

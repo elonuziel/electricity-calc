@@ -1298,7 +1298,6 @@ function resetAllData() {
 </script>
     <script>
 // ───── JSONHosting Cloud Backup ─────
-const JSONHOSTING_API = 'https://jsonhosting.com/api/json';
 
 // ===== OFFLINE DETECTION =====
 
@@ -1375,6 +1374,9 @@ function validateCloudData(data) {
 
 /**
  * Show preview modal before restoring cloud data
+ * @param {Array} cloudBills - Bills from cloud backup
+ * @param {Object} cloudSettings - Settings from cloud backup
+ * @param {Function} onConfirm - Callback function to run on confirm (no string injection)
  */
 function showCloudRestoreModal(cloudBills, cloudSettings, onConfirm) {
     const existingBills = bills.length;
@@ -1391,16 +1393,21 @@ function showCloudRestoreModal(cloudBills, cloudSettings, onConfirm) {
             </div>
             <p class="mb-6 text-gray-700">האם לשחזר את הנתונים מהגיבוי?</p>
             <div class="flex gap-3">
-                <button onclick="this.closest('div').remove()" class="flex-1 bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
+                <button id="cloudRestoreCancelBtn" class="flex-1 bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
                     ביטול
                 </button>
-                <button onclick="${onConfirm}; this.closest('div').remove()" class="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <button id="cloudRestoreConfirmBtn" class="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     החלף הכל
                 </button>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
+    modal.querySelector('#cloudRestoreCancelBtn').addEventListener('click', () => modal.remove());
+    modal.querySelector('#cloudRestoreConfirmBtn').addEventListener('click', () => {
+        onConfirm();
+        modal.remove();
+    });
 }
 
 async function loadFromCloud() {
@@ -1430,7 +1437,7 @@ async function loadFromCloud() {
     const spinner = showLoadingSpinner('טוען נתונים מהענן...');
     
     try {
-        const url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/' + backupId + '/raw')}`;
+        const url = `${CONFIG.CLOUD.CORS_PROXY}${encodeURIComponent(CONFIG.CLOUD.API_URL + '/' + backupId + '/raw')}`;
         const res = await fetch(url, { signal: AbortSignal.timeout(CONFIG.CLOUD.FETCH_TIMEOUT) });
         if (!res.ok) {
             if (res.status === 404) throw new Error('גיבוי לא נמצא. בדוק את המזהה שלך.');
@@ -1453,14 +1460,14 @@ async function loadFromCloud() {
         hideLoadingSpinner();
         
         // Show preview modal and ask for confirmation
-        showCloudRestoreModal(cloudBills, cloudSettings, `
-            state.replaceAll(${JSON.stringify(cloudBills)}, ${JSON.stringify(cloudSettings)});
+        showCloudRestoreModal(cloudBills, cloudSettings, () => {
+            state.replaceAll(cloudBills, cloudSettings);
             renderSettings();
             renderBills();
             updateInitBanner();
-            safeLocalStorageSet('elecCloudBackupId', '${backupId}');
+            safeLocalStorageSet('elecCloudBackupId', backupId);
             showCloudStatus('הנתונים נטענו בהצלחה מהענן! ✓');
-        `);
+        });
     } catch (err) {
         hideLoadingSpinner();
         
@@ -1475,6 +1482,12 @@ async function loadFromCloud() {
 }
 
 async function saveToCloud() {
+    // Check if online
+    if (!isOnline()) {
+        showCloudStatus('לא ניתן לשמור נתונים כשאתה לא מחובר לאינטרנט.', true);
+        return;
+    }
+
     let backupId = document.getElementById('cloudBackupId').value.trim();
     const accessKey = document.getElementById('cloudAccessKey').value.trim();
 
@@ -1497,14 +1510,14 @@ async function saveToCloud() {
         settings: initialSettings
     });
 
-    showCloudStatus('שומר נתונים לענן...');
+    const spinner = showLoadingSpinner('שומר נתונים לענן...');
     try {
         let url, method, body;
         const headers = { 'Content-Type': 'application/json' };
 
         if (backupId) {
             // Update existing backup
-            url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/' + backupId)}`;
+            url = `${CONFIG.CLOUD.CORS_PROXY}${encodeURIComponent(CONFIG.CLOUD.API_URL + '/' + backupId)}`;
             method = 'PUT';
             body = JSON.stringify({
                 editKey: accessKey,
@@ -1512,12 +1525,12 @@ async function saveToCloud() {
             });
         } else {
             // Create new backup
-            url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/save')}`;
+            url = `${CONFIG.CLOUD.CORS_PROXY}${encodeURIComponent(CONFIG.CLOUD.API_URL + '/save')}`;
             method = 'POST';
             body = payload;
         }
 
-        const res = await fetch(url, { method, headers, body });
+        const res = await fetch(url, { method, headers, body, signal: AbortSignal.timeout(CONFIG.CLOUD.FETCH_TIMEOUT) });
         if (!res.ok) throw new Error('שגיאה בפעולת הגיבוי. בדוק את המזהה ואת מפתח העריכה.');
 
         if (method === 'POST') {
@@ -1528,18 +1541,23 @@ async function saveToCloud() {
             document.getElementById('cloudBackupId').value = newId;
             document.getElementById('cloudAccessKey').value = newEditKey;
 
-            localStorage.setItem('elecCloudBackupId', newId);
-            localStorage.setItem('elecCloudAccessKey', newEditKey);
+            safeLocalStorageSet('elecCloudBackupId', newId);
+            safeLocalStorageSet('elecCloudAccessKey', newEditKey);
 
+            hideLoadingSpinner();
             showBackupSuccessModal(newId, newEditKey);
             showCloudStatus('גיבוי חדש נוצר בהצלחה! ✓');
         } else {
-            localStorage.setItem('elecCloudBackupId', backupId);
-            localStorage.setItem('elecCloudAccessKey', accessKey);
+            safeLocalStorageSet('elecCloudBackupId', backupId);
+            safeLocalStorageSet('elecCloudAccessKey', accessKey);
+            hideLoadingSpinner();
             showCloudStatus('הנתונים עודכנו בענן בהצלחה! ✓');
         }
     } catch (err) {
-        if (err.message === 'Failed to fetch') {
+        hideLoadingSpinner();
+        if (err.name === 'AbortError') {
+            showCloudStatus('פג זמן ההמתנה. הרשת כנראה איטית.', true);
+        } else if (err.message === 'Failed to fetch') {
             showCloudStatus('שגיאת רשת: לא ניתן להתחבר לשרת הגיבוי.', true);
         } else {
             showCloudStatus(err.message, true);
@@ -1767,7 +1785,7 @@ function saveSettings() {
     if (bottomVal) initialSettings.bottom = parseFloat(bottomVal);
     saveSettingsState(); // from state.js
     renderBills();
-    showToast(CONFIG.MESSAGES.SETTINGS_SAVED);
+    showToast(CONFIG.MESSAGES.SAVE_SUCCESS);
     updateEmptyStateMessage();
 }
 
