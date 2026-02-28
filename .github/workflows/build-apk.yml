@@ -38,6 +38,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Build standalone HTML
+        run: node build.js
+
       - name: Install dependencies
         working-directory: apk-builder
         run: npm install

@@ -52,9 +52,59 @@ function exportToCSV() {
 }
 
 // ───── CSV Import ─────
+
+/**
+ * Sanitize and validate CSV data before import
+ * Escapes HTML special characters to prevent injection if data is later rendered
+ */
+function sanitizeCSVData(value) {
+    if (typeof value !== 'string') return value;
+    
+    return value.trim()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .substring(0, CONFIG.CSV.MAX_STRING_LENGTH);
+}
+
+/**
+ * Validate CSV row data structure
+ */
+function isValidCSVRow(date, amount, kwh, readingTop, readingBottom) {
+    // Check if values are reasonable numbers
+    if (isNaN(amount) || isNaN(kwh) || isNaN(readingTop) || isNaN(readingBottom)) {
+        return false;
+    }
+    
+    // Check for negative values (invalid for readings)
+    if (readingTop < 0 || readingBottom < 0) {
+        return false;
+    }
+    
+    // Check if amounts are reasonable (not too large)
+    if (amount < 0 || amount > 1000000 || kwh < 0 || kwh > 100000) {
+        return false;
+    }
+    
+    // Validate date format (YYYY-MM-DD or similar)
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+        return false;
+    }
+    
+    return true;
+}
+
 function importFromCSV(event) {
     const file = event.target.files[0];
     if (!file) return;
+
+    // Validate file size (max 5MB)
+    if (file.size > 5242880) {
+        alert('הקובץ גדול מדי (מקסימום 5MB).');
+        event.target.value = '';
+        return;
+    }
 
     const reader = new FileReader();
     reader.onload = function (e) {
@@ -64,6 +114,7 @@ function importFromCSV(event) {
 
             if (lines.length < 2) {
                 alert('הקובץ ריק או לא תקין.');
+                event.target.value = '';
                 return;
             }
 
@@ -71,10 +122,16 @@ function importFromCSV(event) {
             const dataLines = lines.slice(1);
             let imported = 0;
             let skipped = 0;
+            const errors = [];
 
-            dataLines.forEach(line => {
-                const cols = line.split(',');
-                if (cols.length < 9) { skipped++; return; }
+            dataLines.forEach((line, index) => {
+                const cols = line.split(',').map(col => sanitizeCSVData(col));
+                
+                if (cols.length < 9) { 
+                    skipped++;
+                    errors.push(`שורה ${index + 2}: מעט עמודות מידי`);
+                    return;
+                }
 
                 const date = cols[0].trim();
                 const amount = parseFloat(cols[1]);
@@ -82,20 +139,23 @@ function importFromCSV(event) {
                 const readingTop = parseFloat(cols[3]);
                 const readingBottom = parseFloat(cols[6]);
 
-                // Validate parsed values
-                if (!date || isNaN(amount) || isNaN(kwh) || isNaN(readingTop) || isNaN(readingBottom)) {
+                // Validate parsed values with strict rules
+                if (!isValidCSVRow(date, amount, kwh, readingTop, readingBottom)) {
                     skipped++;
+                    errors.push(`שורה ${index + 2}: נתונים לא תקינים`);
                     return;
                 }
 
                 // Skip if a bill with the same date already exists
                 if (bills.some(b => b.date === date)) {
                     skipped++;
+                    errors.push(`שורה ${index + 2}: חשבונית בתאריך זה קיימת כבר`);
                     return;
                 }
 
+                const billId = generateUniqueId();
                 bills.push({
-                    id: Date.now() + Math.random(),
+                    id: billId,
                     date: date,
                     main: { amount: amount, kwh: kwh },
                     readings: { top: readingTop, bottom: readingBottom }
@@ -107,12 +167,22 @@ function importFromCSV(event) {
             saveData();
             renderBills();
 
-            alert(`ייבוא הושלם: ${imported} חשבונות יובאו, ${skipped} שורות דולגו.`);
+            let message = `ייבוא הושלם: ${imported} חשבונות יובאו, ${skipped} שורות דולגו.`;
+            if (errors.length > 0 && errors.length <= 5) {
+                message += '\n\nבעיות:\n' + errors.slice(0, 5).join('\n');
+            }
+            alert(message);
         } catch (err) {
             alert('שגיאה בקריאת הקובץ: ' + err.message);
+            console.error('CSV import error:', err);
         }
+        event.target.value = '';
     };
+    
+    reader.onerror = function() {
+        alert('שגיאה בקריאת הקובץ. אנא נסה שוב.');
+        event.target.value = '';
+    };
+    
     reader.readAsText(file, 'UTF-8');
-    // Reset file input so same file can be picked again
-    event.target.value = '';
 }
