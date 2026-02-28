@@ -83,14 +83,41 @@ async function purgeCSS(css, htmlContent) {
     return purgedCSS;
 }
 
+// Replace url(./webfonts/...) references in CSS with inline base64 data URIs
+function inlineFontUrls(css, cssDir) {
+    return css.replace(/url\(\.\/webfonts\/([^)]+)\)/g, (match, filename) => {
+        const fontPath = path.join(cssDir, 'webfonts', filename);
+        if (!fs.existsSync(fontPath)) {
+            console.warn(`  Warning: font file not found "${fontPath}" — skipping`);
+            return match;
+        }
+        const fontData = fs.readFileSync(fontPath);
+        const base64 = fontData.toString('base64');
+        const ext = path.extname(filename).toLowerCase();
+        const mimeType = ext === '.woff2' ? 'font/woff2'
+            : ext === '.woff' ? 'font/woff'
+            : ext === '.ttf' ? 'font/ttf'
+            : 'application/octet-stream';
+        console.log(`  Inlined font: ${filename} (${(fontData.length / 1024).toFixed(0)} KB)`);
+        return `url(data:${mimeType};base64,${base64})`;
+    });
+}
+
 async function build() {
     let html = readSrc('index.html');
+
+    const cssDir = path.join(SRC_DIR, 'css');
 
     // Inline all <link rel="stylesheet" href="..."> tags (handles any attribute order)
     html = html.replace(/<link\b[^>]*\bhref="([^"]+)"[^>]*>/g, (match, href) => {
         if (!/rel=["']stylesheet["']/.test(match)) return match;
         try {
-            const css = readSrc(href);
+            let css = readSrc(href);
+            // Embed font files as base64 data URIs for standalone use
+            if (css.includes('url(./webfonts/')) {
+                console.log(`  Embedding fonts from ${href}...`);
+                css = inlineFontUrls(css, path.join(SRC_DIR, path.dirname(href)));
+            }
             return `<style data-href="${href}">\n${css}\n</style>`;
         } catch (e) {
             console.warn(`  Warning: could not inline CSS "${href}" — skipping`);
