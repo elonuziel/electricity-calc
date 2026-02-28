@@ -1,8 +1,21 @@
+/**
+ * UI Module: Handles all user interface interactions and rendering
+ * Dependencies: state (stateManager), config, ui-components, validation, calculator
+ */
+
 // ───── Settings ─────
+
+/**
+ * Toggle visibility of the settings panel
+ */
 function toggleSettings() {
     document.getElementById('settingsSection').classList.toggle('hidden');
 }
 
+/**
+ * Save initial meter readings to state manager and localStorage
+ * Called when user updates initial reading values in settings
+ */
 function saveSettings() {
     const topVal = document.getElementById('initReadingTop').value;
     const bottomVal = document.getElementById('initReadingBottom').value;
@@ -14,10 +27,16 @@ function saveSettings() {
     updateEmptyStateMessage();
 }
 
+/**
+ * Persist settings to localStorage with error handling
+ */
 function saveSettingsState() {
     safeLocalStorageSet('elecSettings', JSON.stringify(initialSettings));
 }
 
+/**
+ * Load and display current settings in the UI
+ */
 function renderSettings() {
     document.getElementById('initReadingTop').value = initialSettings.top ?? '';
     document.getElementById('initReadingBottom').value = initialSettings.bottom ?? '';
@@ -33,6 +52,11 @@ function updateInitBanner() {
 }
 
 // ───── Initial Readings Modal ─────
+
+/**
+ * Open modal for setting initial meter readings
+ * Only shown on first-time setup or when resetting readings
+ */
 function openInitReadingsModal() {
     document.getElementById('initReadingsModal').classList.remove('hidden');
     document.getElementById('initFormErrors').classList.add('hidden');
@@ -71,6 +95,12 @@ function handleInitReadingsSubmit(e) {
 }
 
 // ───── Modal (Add / Edit) ─────
+
+/**
+ * Open modal for adding a new bill or editing existing bill
+ * @param {string|null} billId - Bill ID to edit, or null to add new bill
+ * Validates initial readings are set before allowing bill creation
+ */
 function openModal(billId = null) {
     if (!billId && !state.hasInitialReadings()) {
         openInitReadingsModal();
@@ -123,6 +153,9 @@ function openModal(billId = null) {
     document.getElementById('prevBottomDisplay').innerText = prevBottom;
 }
 
+/**
+ * Close the bill modal and reset editing state
+ */
 function closeModal() {
     document.getElementById('billModal').classList.add('hidden');
     state.setEditingBillId(null);
@@ -130,6 +163,17 @@ function closeModal() {
 }
 
 // ───── Validation ─────
+
+/**
+ * Validate bill form inputs
+ * Checks readings don't go backward and apartment consumption doesn't exceed total
+ * @param {string} formDate - Date in YYYY-MM-DD format
+ * @param {number} formAmount - Total bill amount in ₪
+ * @param {number} formKwh - Total consumption in kWh
+ * @param {number} formTop - Top apartment meter reading
+ * @param {number} formBottom - Bottom apartment meter reading
+ * @returns {Array} Array of error messages (empty if valid)
+ */
 function validateForm(formDate, formAmount, formKwh, formTop, formBottom) {
     const errors = [];
 
@@ -187,11 +231,20 @@ function showFormErrors(errors) {
     container.classList.remove('hidden');
 }
 
+/**
+ * Hide validation error messages
+ */
 function hideFormErrors() {
     document.getElementById('formErrors').classList.add('hidden');
 }
 
 // ───── Form Submit ─────
+
+/**
+ * Handle bill form submission (add or edit)
+ * Validates form data, updates state manager, and re-renders bills
+ * @param {Event} e - Form submit event
+ */
 function handleFormSubmit(e) {
     e.preventDefault();
 
@@ -233,6 +286,11 @@ function handleFormSubmit(e) {
     }
 }
 
+/**
+ * Delete a bill from the state manager with confirmation
+ * Shows undo toast notification if successful
+ * @param {string} id - Bill ID to delete
+ */
 function deleteBill(id) {
     if (confirm('האם את בטוחה שברצונך למחוק שורה זו?')) {
         try {
@@ -287,6 +345,10 @@ function openAddBillModal() {
 }
 
 // ───── Render Bills ─────
+/**
+ * Render all bills to the DOM. Uses DocumentFragment for efficient batch rendering.
+ * Performance: O(n) where n is number of bills
+ */
 function renderBills() {
     const container = document.getElementById('billsList');
     const emptyState = document.getElementById('emptyState');
@@ -299,6 +361,8 @@ function renderBills() {
     }
     emptyState.classList.add('hidden');
 
+    // Use DocumentFragment for efficient batch DOM insertion
+    const fragment = document.createDocumentFragment();
     let prevTop = initialSettings.top;
     let prevBottom = initialSettings.bottom;
 
@@ -325,10 +389,10 @@ function renderBills() {
             <div class="bg-gray-100 p-3 flex justify-between items-center border-b">
                 <span class="font-bold text-gray-700">${dateStr}</span>
                 <div class="flex gap-2">
-                    <button onclick="openModal(${bill.id})" class="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1 bg-white px-2 py-1 rounded border border-blue-200">
+                    <button onclick="openModal('${bill.id}')" class="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1 bg-white px-2 py-1 rounded border border-blue-200">
                         <i class="fas fa-edit"></i> עריכה
                     </button>
-                    <button onclick="deleteBill(${bill.id})" class="text-red-400 hover:text-red-600 text-sm bg-white px-2 py-1 rounded border border-red-100">
+                    <button onclick="deleteBill('${bill.id}')" class="text-red-400 hover:text-red-600 text-sm bg-white px-2 py-1 rounded border border-red-100">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -398,11 +462,15 @@ function renderBills() {
             </div>
         `;
 
-        container.appendChild(card);
+        // Append to fragment instead of DOM for better performance
+        fragment.appendChild(card);
 
         prevTop = bill.readings.top;
         prevBottom = bill.readings.bottom;
     });
+
+    // Single DOM operation: insert entire fragment at once
+    container.appendChild(fragment);
 }
 
 // ───── Backup Success Modal ─────
