@@ -52,7 +52,7 @@ jobs:
       - name: Generate Changelog
         id: changelog
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Get the last release tag
           LAST_TAG=$(git tag --sort=-version:refname | head -n 1)
@@ -68,39 +68,39 @@ jobs:
             exit 0
           fi
 
-          # Escape newlines and quotes for JSON payload
-          # using jq to safely serialize the variable
-          ESCAPED_COMMITS=$(jq -Rs '.' <<< "$COMMITS")
+          # Build the prompt with commits included
+          PROMPT_FILE=".changelog-prompt.txt"
+          cat > "$PROMPT_FILE" << 'PROMPTEOF'
+          You are a helpful assistant that generates clean release notes.
+          Summarize the following git commits into a clean, readable changelog
+          (3-5 bullet points) focusing on user-facing features and bug fixes.
+          Ignore version bumps and obscure chore commits.
+          Do not add markdown headers like Changelog.
 
-          PAYLOAD=$(cat <<EOF
-          {
-            "model": "gpt-4o-mini",
-            "messages": [
-              {
-                "role": "system",
-                "content": "You are a helpful assistant that generates clean release notes. Summarize the following git commits into a clean, readable changelog (3-5 bullet points) focusing on user-facing features and bug fixes. Ignore version bumps and obscure chore commits. Do not add markdown headers like 'Changelog'."
-              },
-              {
-                "role": "user",
-                "content": $ESCAPED_COMMITS
-              }
-            ]
-          }
-          EOF
-          )
+          PROMPTEOF
+          echo "$COMMITS" >> "$PROMPT_FILE"
 
-          # Call GitHub Models built-in endpoint
+          # Build JSON payload safely using jq (avoids shell escaping issues)
+          jq -Rs --arg model "openai/gpt-4o-mini" \
+            '{model: $model, messages: [{role: "user", content: .}]}' \
+            "$PROMPT_FILE" > .changelog-payload.json
+
+          # Call GitHub Models API
           echo "Requesting AI summary..."
-          SUMMARY=$(curl -s "https://models.inference.ai.azure.com/chat/completions" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          curl -sS "https://models.github.ai/inference/chat/completions" \
             -H "Content-Type: application/json" \
-            -d "$PAYLOAD" | jq -r '.choices[0].message.content')
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -d @.changelog-payload.json > .changelog-response.json
+
+          # Extract summary from response
+          SUMMARY=$(jq -r '.choices[0].message.content // empty' .changelog-response.json)
 
           if [ -n "$SUMMARY" ] && [ "$SUMMARY" != "null" ]; then
               echo "$SUMMARY" > changelog.txt
           else
               echo "AI Summary failed, falling back to smart keyword grouping..."
-              
+              cat .changelog-response.json
+
               FEATURES=""
               FIXES=""
               OTHER=""
