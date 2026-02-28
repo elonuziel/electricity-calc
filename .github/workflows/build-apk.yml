@@ -141,8 +141,16 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          mkdir -p .github/keys
+          if [ ! -f .github/keys/debug.keystore ]; then
+            echo "Generating persistent debug keystore..."
+            keytool -genkey -v -keystore .github/keys/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=Android Debug"
+            git add .github/keys/debug.keystore
+          fi
+
           git add package.json
-          git commit -m "chore: bump version to ${{ steps.bump_version.outputs.version }}"
+          git commit -m "chore: bump version and ensure consistent keystore [skip ci]"
           git tag ${{ steps.bump_version.outputs.tag }}
           git push origin HEAD:main --follow-tags
 
@@ -166,6 +174,14 @@ jobs:
 
       - name: Make Gradlew executable
         run: chmod +x android/gradlew
+
+      - name: Setup Persistent Keystore
+        run: |
+          mkdir -p ~/.android
+          if [ -f .github/keys/debug.keystore ]; then
+            cp .github/keys/debug.keystore ~/.android/debug.keystore
+            echo "Persistent keystore configured successfully."
+          fi
 
       - name: Build Debug APK
         working-directory: android
