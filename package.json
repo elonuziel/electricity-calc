@@ -8,6 +8,7 @@
   "license": "MIT",
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^6.0.0",
-    "postcss": "^8.4.35"
+    "postcss": "^8.4.35",
+    "purgecss": "^6.0.0"
   }
 }
