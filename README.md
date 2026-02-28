@@ -41,7 +41,7 @@ $$
 
 ## Usage
 
-1. Open `electricity_calc_#####.html` in any modern browser.
+1. Open `electricity_calc_standalone.html` in any modern browser (or download the latest APK from the badge above).
 2. Click the ⚙️ gear icon to set initial meter readings (one-time setup).
 3. Click **הוספת חשבון חדש** to add a new bill — enter the main bill total, total kWh, and each apartment's current meter reading.
 4. Results are displayed instantly with per-apartment cost and common-area breakdown.
@@ -51,17 +51,38 @@ $$
 ## File Structure
 
 ```
-src/                               — Web source code (HTML/CSS/JS)
+src/                               — Web source code (HTML/CSS/JS, modular)
 apk-builder/                       — Android APK build materials (Capacitor, package.json, assets)
 .github/workflows/                 — GitHub Actions for automated APK builds
-electricity_calc_#####.html   — Bundled standalone versions (Best for daily use)
+electricity_calc_standalone.html   — Auto-generated standalone file (built from src/)
 old/                               — Legacy versions and backups
+@old/                              — Archived planning documents
 ```
+
+## Development
+
+The standalone HTML file is auto-generated from the modular `src/` folder during the APK build. To build it locally:
+
+```bash
+npm install
+npm run build
+```
+
+This produces `electricity_calc_standalone.html` — a single self-contained file with all HTML, CSS, and JS inlined.
 
 ## Tech Stack
 
-- **HTML / CSS / JS** — No build step, no frameworks
+- **HTML / CSS / JS** — Vanilla, modular source in `src/`
+- **Vite** — Build tool (bundles `src/` into standalone HTML)
 - **Tailwind CSS** (CDN) — Utility-first styling
 - **Font Awesome** (CDN) — Icons
 - **localStorage** — Client-side persistence
 - **[JSONHosting.com](https://jsonhosting.com)** — Free cloud JSON storage for backup/restore
+
+## Planned Improvements
+
+See [IDEAS.md](IDEAS.md) for a list of deferred features, including:
+- Client-side encryption for cloud backups
+- Bill search & filtering
+- Advanced export options (PDF, charts)
+- Automated test suite

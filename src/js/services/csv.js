@@ -55,15 +55,16 @@ function exportToCSV() {
 
 /**
  * Sanitize and validate CSV data before import
+ * Escapes HTML special characters to prevent injection if data is later rendered
  */
 function sanitizeCSVData(value) {
     if (typeof value !== 'string') return value;
     
-    // Remove any potential HTML/script content
     return value.trim()
-        .replace(/<script[^>]*>.*?<\/script>/gi, '')
-        .replace(/<[^>]+>/g, '')
-        .substring(0, 1000); // Limit length for safety
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .substring(0, CONFIG.CSV.MAX_STRING_LENGTH);
 }
 
 /**

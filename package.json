@@ -1,0 +1,9 @@
+{
+  "name": "electricity-calc",
+  "version": "1.0.0",
+  "description": "Build tools for Electricity Bill Splitter",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "license": "MIT"
+}

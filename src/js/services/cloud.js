@@ -22,7 +22,7 @@ function setupOfflineDetection() {
     window.addEventListener('online', () => {
         console.log('Device came online');
         hideOfflineBanner();
-        showToast('אינך מחובר לאינטרנט שוב', 'success');
+        showToast('חזרת להיות מחובר לאינטרנט', 'success');
     });
     
     // Show banner if already offline on load
@@ -85,12 +85,12 @@ function showCloudRestoreModal(cloudBills, cloudSettings, onConfirm) {
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
     modal.innerHTML = `
         <div class="bg-white rounded-lg p-6 max-w-md">
-            <h2 class="text-xl font-bold mb-4">התחזוקה מגיבוי</h2>
+            <h2 class="text-xl font-bold mb-4">שחזור מגיבוי</h2>
             <div class="mb-4 p-3 bg-blue-50 rounded text-sm">
                 <p><strong>נתונים קיימים:</strong> ${existingBills} חשבונות</p>
                 <p><strong>נתונים בגיבוי:</strong> ${cloudBillCount} חשבונות</p>
             </div>
-            <p class="mb-6 text-gray-700">איך תרצה להתחזוקה?</p>
+            <p class="mb-6 text-gray-700">האם לשחזר את הנתונים מהגיבוי?</p>
             <div class="flex gap-3">
                 <button onclick="this.closest('div').remove()" class="flex-1 bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
                     ביטול
@@ -114,7 +114,7 @@ async function loadFromCloud() {
     let backupId = document.getElementById('cloudBackupId').value.trim();
 
     // Auto-extract ID if user pasted a full JSONHosting URL
-    if (backupId.includes('jsonhosting.com')) {
+    if (/^https?:\/\/(?:www\.)?jsonhosting\.com\//i.test(backupId)) {
         const matches = backupId.match(/\/api\/json\/([a-zA-Z0-9]+)/) || backupId.match(/\/get\/([a-zA-Z0-9]+)/);
         if (matches && matches[1]) {
             backupId = matches[1];
@@ -180,7 +180,7 @@ async function saveToCloud() {
     const accessKey = document.getElementById('cloudAccessKey').value.trim();
 
     // Auto-extract ID if user pasted a full JSONHosting URL
-    if (backupId.includes('jsonhosting.com')) {
+    if (/^https?:\/\/(?:www\.)?jsonhosting\.com\//i.test(backupId)) {
         const matches = backupId.match(/\/api\/json\/([a-zA-Z0-9]+)/) || backupId.match(/\/get\/([a-zA-Z0-9]+)/);
         if (matches && matches[1]) {
             backupId = matches[1];

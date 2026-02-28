@@ -99,11 +99,15 @@ const CONFIG = {
         DELETE_SUCCESS: 'חשבונית נמחקה',
         UNDO: 'בטל',
         BILL_NOT_FOUND: 'חשבונית לא נמצאה',
+        BILL_CREATED_SUCCESS: 'חשבונית נשמרה בהצלחה',
+        BILL_ADD_ERROR: 'שגיאה בשמירת חשבונית',
+        CONFIRM_CLEAR_DATA: 'האם אתה בטוח שברצונך למחוק את כל הנתונים?',
         
         // General
         ERROR: 'שגיאה לא צפויה',
         SUCCESS: 'הצליח!',
         SAVE_SUCCESS: 'הגדרות נשמרו בהצלחה',
         OFFLINE: 'אינך מחובר לאינטרנט',
+        STORAGE_QUOTA_EXCEEDED: 'הזיכרון של הדפדפן מלא. אנא מחקו חשבונות ישנים או נקו את נתוני הדפדפן.',
     },
 };
