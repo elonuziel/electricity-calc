@@ -41,7 +41,7 @@ $$
 
 ## Usage
 
-1. Open `electricity_calc_standalone.html` in any modern browser.
+1. Open `electricity_calc_#####.html` in any modern browser.
 2. Click the ⚙️ gear icon to set initial meter readings (one-time setup).
 3. Click **הוספת חשבון חדש** to add a new bill — enter the main bill total, total kWh, and each apartment's current meter reading.
 4. Results are displayed instantly with per-apartment cost and common-area breakdown.
@@ -51,11 +51,11 @@ $$
 ## File Structure
 
 ```
-src/                               — Source code used for building the Android APK (Capacitor)
-.github/workflows/                 — GitHub Actions for automated APK builds (manual trigger)
-electricity_calc_****.html   — Bundled standalone versions (Best for daily use on Desktop/iOS)
-old/                               — Legacy versions, old PWA implementation, and backups
-capacitor.config.json              — Capacitor configuration for the APK wrapper
+src/                               — Web source code (HTML/CSS/JS)
+apk-builder/                       — Android APK build materials (Capacitor, package.json, assets)
+.github/workflows/                 — GitHub Actions for automated APK builds
+electricity_calc_#####.html   — Bundled standalone versions (Best for daily use)
+old/                               — Legacy versions and backups
 ```
 
 ## Tech Stack

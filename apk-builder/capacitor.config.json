@@ -1,7 +1,7 @@
 {
     "appId": "com.electricity.calc",
     "appName": "מחשבון חשמל",
-    "webDir": "src",
+    "webDir": "../src",
     "server": {
         "androidScheme": "https"
     }

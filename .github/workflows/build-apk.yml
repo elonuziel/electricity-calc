@@ -39,10 +39,12 @@ jobs:
           java-version: '17'
 
       - name: Install dependencies
+        working-directory: apk-builder
         run: npm install
 
       - name: Bump version in package.json
         id: bump_version
+        working-directory: apk-builder
         run: |
           npm version ${{ github.event.inputs.bump_type }} --no-git-tag-version
           NEW_VERSION=$(node -p "require('./package.json').version")
@@ -149,30 +151,35 @@ jobs:
             git add .github/keys/debug.keystore
           fi
 
-          git add package.json
+          git add apk-builder/package.json
           git commit -m "chore: bump version and ensure consistent keystore [skip ci]"
           git tag ${{ steps.bump_version.outputs.tag }}
           git push origin HEAD:main --follow-tags
 
       - name: Add Android platform
+        working-directory: apk-builder
         run: |
           if [ ! -d "android" ]; then
             npx cap add android
           fi
 
       - name: Generate Custom App Icons
+        working-directory: apk-builder
         run: npx @capacitor/assets generate --assetPath assets --android
 
       - name: Sync web assets into Android project
+        working-directory: apk-builder
         run: npx cap sync android
 
       - name: Inject version into Android build
+        working-directory: apk-builder
         run: |
           # Set versionName and versionCode in build.gradle
           sed -i "s/versionName \".*\"/versionName \"${{ steps.bump_version.outputs.version }}\"/" android/app/build.gradle
           sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" android/app/build.gradle
 
       - name: Make Gradlew executable
+        working-directory: apk-builder
         run: chmod +x android/gradlew
 
       - name: Setup Persistent Keystore
@@ -184,13 +191,14 @@ jobs:
           fi
 
       - name: Build Debug APK
-        working-directory: android
+        working-directory: apk-builder/android
         run: ./gradlew assembleDebug
 
       - name: Rename APK with version
+        working-directory: apk-builder
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk \
-             electricity-calc-${{ steps.bump_version.outputs.version }}.apk
+             ../electricity-calc-${{ steps.bump_version.outputs.version }}.apk
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
