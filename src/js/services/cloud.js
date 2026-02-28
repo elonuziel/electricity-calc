@@ -134,9 +134,7 @@ async function loadFromCloud() {
         return;
     }
 
-    // Show loading spinner
-    const spinner = showLoadingSpinner('טוען נתונים מהענן...');
-    
+    showCloudStatus('טוען נתונים מהענן...');
     try {
         const url = `${CONFIG.CLOUD.CORS_PROXY}${encodeURIComponent(CONFIG.CLOUD.API_URL + '/' + backupId + '/raw')}`;
         const res = await fetch(url, { signal: AbortSignal.timeout(CONFIG.CLOUD.FETCH_TIMEOUT) });
@@ -151,15 +149,12 @@ async function loadFromCloud() {
         // Validate data before showing preview
         const validation = validateCloudData(data);
         if (!validation.valid) {
-            hideLoadingSpinner();
             showCloudStatus('שגיאה בנתוני הגיבוי: ' + validation.error, true);
             return;
         }
 
         const { cloudBills, cloudSettings } = validation.data;
 
-        hideLoadingSpinner();
-        
         // Show preview modal and ask for confirmation
         showCloudRestoreModal(cloudBills, cloudSettings, () => {
             state.replaceAll(cloudBills, cloudSettings);
@@ -170,8 +165,6 @@ async function loadFromCloud() {
             showCloudStatus('הנתונים נטענו בהצלחה מהענן! ✓');
         });
     } catch (err) {
-        hideLoadingSpinner();
-        
         if (err.name === 'AbortError') {
             showCloudStatus('פג זמן ההמתנה. הרשת כנראה איטית.', true);
         } else if (err.message === 'Failed to fetch') {
@@ -211,7 +204,7 @@ async function saveToCloud() {
         settings: initialSettings
     });
 
-    const spinner = showLoadingSpinner('שומר נתונים לענן...');
+    showCloudStatus('שומר נתונים לענן...');
     try {
         let url, method, body;
         const headers = { 'Content-Type': 'application/json' };
@@ -245,17 +238,14 @@ async function saveToCloud() {
             safeLocalStorageSet('elecCloudBackupId', newId);
             safeLocalStorageSet('elecCloudAccessKey', newEditKey);
 
-            hideLoadingSpinner();
             showBackupSuccessModal(newId, newEditKey);
             showCloudStatus('גיבוי חדש נוצר בהצלחה! ✓');
         } else {
             safeLocalStorageSet('elecCloudBackupId', backupId);
             safeLocalStorageSet('elecCloudAccessKey', accessKey);
-            hideLoadingSpinner();
             showCloudStatus('הנתונים עודכנו בענן בהצלחה! ✓');
         }
     } catch (err) {
-        hideLoadingSpinner();
         if (err.name === 'AbortError') {
             showCloudStatus('פג זמן ההמתנה. הרשת כנראה איטית.', true);
         } else if (err.message === 'Failed to fetch') {
