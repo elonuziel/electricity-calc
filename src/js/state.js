@@ -1,10 +1,37 @@
 // ───── State ─────
+// DEPRECATED: Use stateManager instead
+// Keeping these for backward compatibility, but prefer state.getBills(), state.getSettings(), etc.
 let bills = [];
 let initialSettings = { top: null, bottom: null };
 let editingBillId = null;
 
+/**
+ * Sync global state with state manager
+ * Called after state manager is initialized
+ */
+function initializeStateSync() {
+    bills = state.getBills();
+    initialSettings = state.getSettings();
+    
+    // Subscribe to state changes to keep globals in sync
+    state.on('bills:updated', (updatedBills) => {
+        bills = updatedBills;
+    });
+    
+    state.on('settings:updated', (updatedSettings) => {
+        initialSettings = updatedSettings;
+    });
+    
+    state.on('editing:changed', (billId) => {
+        editingBillId = billId;
+    });
+}
+
 function saveData() {
-    localStorage.setItem('elecBills', JSON.stringify(bills));
+    const saved = safeLocalStorageSet('elecBills', JSON.stringify(bills));
+    if (!saved) {
+        console.error('Failed to save bills - storage quota exceeded');
+    }
 }
 
 function hasInitialReadings() {
@@ -12,15 +39,9 @@ function hasInitialReadings() {
 }
 
 function resetAllData() {
-    if (confirm('אזהרה: פעולה זו תמחק את כל החשבונות ואת כל ההגדרות מהמכשיר הזה.\nהאם את/ה בטוח/ה?')) {
+    if (confirm(CONFIG.MESSAGES.CONFIRM_CLEAR_DATA)) {
         if (confirm('האם אתה באמת בטוח? הנתונים יימחקו ולא ניתן יהיה לשחזר אותם.')) {
-            localStorage.removeItem('elecBills');
-            localStorage.removeItem('elecSettings');
-            localStorage.removeItem('elecCloudBackupId');
-            localStorage.removeItem('elecCloudAccessKey');
-            bills = [];
-            initialSettings = { top: null, bottom: null };
-
+            state.clearAll();
             document.getElementById('cloudBackupId').value = '';
             document.getElementById('cloudAccessKey').value = '';
             const cloudStatus = document.getElementById('cloudStatus');
@@ -29,7 +50,7 @@ function resetAllData() {
             renderSettings();
             renderBills();
             updateInitBanner();
-            alert('כל הנתונים נמחקו בהצלחה.');
+            showToast(CONFIG.MESSAGES.SUCCESS);
         }
     }
 }

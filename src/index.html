@@ -26,7 +26,7 @@
     <main class="max-w-3xl mx-auto p-4">
 
         <!-- Settings Panel (Hidden by default) -->
-        <div id="settingsPanel" class="hidden bg-white rounded-lg p-4 mb-6 card-shadow border-t-4 border-gray-500">
+        <div id="settingsSection" class="hidden bg-white rounded-lg p-4 mb-6 card-shadow border-t-4 border-gray-500">
             <h2 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">הגדרות</h2>
 
             <div class="mb-6">
@@ -173,8 +173,25 @@
 
         <!-- Empty State -->
         <div id="emptyState" class="hidden text-center py-10 text-gray-500">
-            <i class="fas fa-file-invoice text-4xl mb-3"></i>
-            <p>אין עדיין חשבונות. לחצי על הכפתור למעלה להוספה.</p>
+            <i class="fas fa-file-invoice text-5xl mb-4 text-blue-400"></i>
+            <p class="text-lg mb-2">עדיין אין חשבונות לצפייה</p>
+            <p class="text-sm mb-6 text-gray-400">התחל בהוספת קריאות ראשוניות כ<u>הגדרה</u>, ואז הוסף את החשבונות הראשונים שלך.</p>
+            
+            <div id="emptyStateActions" class="flex flex-col gap-2 items-center">
+                <!-- Conditional: Show "Set Initial Readings" if not set -->
+                <div id="noInitialReadingsMessage" class="hidden w-full">
+                    <p class="text-sm text-orange-600 mb-3 font-semibold">⚠️ אתה צריך להגדיר קריאות ראשוניות</p>
+                    <button type="button" onclick="scrollToSettings()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg transition">
+                        הגדר קריאות ראשוניות
+                    </button>
+                </div>
+                
+                <!-- Always show: Add first bill button -->
+                <p class="text-sm text-gray-500">או</p>
+                <button type="button" onclick="openAddBillModal()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">
+                    הוסף חשבון ראשון
+                </button>
+            </div>
         </div>
     </main>
 
@@ -363,6 +380,10 @@
     </div>
 
     <!-- Included scripts representing the separated components -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/ui-components.js"></script>
+    <script src="js/stateManager.js"></script>
     <script src="js/state.js"></script>
     <script src="js/services/cloud.js"></script>
     <script src="js/services/csv.js"></script>

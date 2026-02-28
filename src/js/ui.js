@@ -1,6 +1,6 @@
 // ───── Settings ─────
 function toggleSettings() {
-    document.getElementById('settingsPanel').classList.toggle('hidden');
+    document.getElementById('settingsSection').classList.toggle('hidden');
 }
 
 function saveSettings() {
@@ -10,11 +10,12 @@ function saveSettings() {
     if (bottomVal) initialSettings.bottom = parseFloat(bottomVal);
     saveSettingsState(); // from state.js
     renderBills();
-    alert('הגדרות נשמרו בהצלחה');
+    showToast(CONFIG.MESSAGES.SETTINGS_SAVED);
+    updateEmptyStateMessage();
 }
 
 function saveSettingsState() {
-    localStorage.setItem('elecSettings', JSON.stringify(initialSettings));
+    safeLocalStorageSet('elecSettings', JSON.stringify(initialSettings));
 }
 
 function renderSettings() {
@@ -71,34 +72,39 @@ function handleInitReadingsSubmit(e) {
 
 // ───── Modal (Add / Edit) ─────
 function openModal(billId = null) {
-    if (!billId && !hasInitialReadings()) {
+    if (!billId && !state.hasInitialReadings()) {
         openInitReadingsModal();
         return;
     }
     document.getElementById('billModal').classList.remove('hidden');
     hideFormErrors();
     const modalTitle = document.getElementById('modalTitle');
-
-    let prevTop = initialSettings.top;
-    let prevBottom = initialSettings.bottom;
+    
+    const currentBills = state.getBills();
+    let prevTop = state.getSettings().top;
+    let prevBottom = state.getSettings().bottom;
 
     if (billId) {
-        editingBillId = billId;
+        state.setEditingBillId(billId);
+        editingBillId = billId; // Keep for backward compatibility
         modalTitle.innerText = "עריכת חשבון";
-        const bill = bills.find(b => b.id === billId);
-        document.getElementById('billDate').value = bill.date;
-        document.getElementById('mainAmount').value = bill.main.amount;
-        document.getElementById('mainKwh').value = bill.main.kwh;
-        document.getElementById('readingTop').value = bill.readings.top;
-        document.getElementById('readingBottom').value = bill.readings.bottom;
+        const bill = state.getBillById(billId);
+        if (bill) {
+            document.getElementById('billDate').value = bill.date;
+            document.getElementById('mainAmount').value = bill.main.amount;
+            document.getElementById('mainKwh').value = bill.main.kwh;
+            document.getElementById('readingTop').value = bill.readings.top;
+            document.getElementById('readingBottom').value = bill.readings.bottom;
 
-        const idx = bills.findIndex(b => b.id === billId);
-        if (idx > 0) {
-            prevTop = bills[idx - 1].readings.top;
-            prevBottom = bills[idx - 1].readings.bottom;
+            const idx = currentBills.findIndex(b => b.id === billId);
+            if (idx > 0) {
+                prevTop = currentBills[idx - 1].readings.top;
+                prevBottom = currentBills[idx - 1].readings.bottom;
+            }
         }
     } else {
-        editingBillId = null;
+        state.setEditingBillId(null);
+        editingBillId = null; // Keep for backward compatibility
         modalTitle.innerText = "הוספת חשבון חדש";
         document.getElementById('billDate').valueAsDate = new Date();
         document.getElementById('mainAmount').value = '';
@@ -106,8 +112,8 @@ function openModal(billId = null) {
         document.getElementById('readingTop').value = '';
         document.getElementById('readingBottom').value = '';
 
-        if (bills.length > 0) {
-            const last = bills[bills.length - 1];
+        if (currentBills.length > 0) {
+            const last = currentBills[currentBills.length - 1];
             prevTop = last.readings.top;
             prevBottom = last.readings.bottom;
         }
@@ -119,7 +125,8 @@ function openModal(billId = null) {
 
 function closeModal() {
     document.getElementById('billModal').classList.add('hidden');
-    editingBillId = null;
+    state.setEditingBillId(null);
+    editingBillId = null; // Keep for backward compatibility
 }
 
 // ───── Validation ─────
@@ -197,34 +204,82 @@ function handleFormSubmit(e) {
     }
     hideFormErrors();
 
-    if (editingBillId) {
-        bills = bills.map(b => {
-            if (b.id === editingBillId) {
-                return { ...b, date: formDate, main: { amount: formAmount, kwh: formKwh }, readings: { top: formTop, bottom: formBottom } };
-            }
-            return b;
-        });
-    } else {
-        bills.push({
-            id: Date.now() + Math.random(),
+    try {
+        const billData = {
             date: formDate,
             main: { amount: formAmount, kwh: formKwh },
             readings: { top: formTop, bottom: formBottom }
-        });
-    }
+        };
 
-    bills.sort((a, b) => new Date(a.date) - new Date(b.date));
-    saveData();
-    closeModal();
-    renderBills();
+        if (editingBillId) {
+            // Update existing bill using state manager
+            state.updateBill(editingBillId, billData);
+            showToast(CONFIG.MESSAGES.BILL_CREATED_SUCCESS);
+        } else {
+            // Add new bill using state manager
+            state.addBill(billData);
+            showToast(CONFIG.MESSAGES.BILL_CREATED_SUCCESS);
+        }
+        
+        closeModal();
+        renderBills();
+    } catch (error) {
+        showToast(CONFIG.MESSAGES.BILL_ADD_ERROR + ': ' + error.message, 'error');
+        console.error('Error adding/updating bill:', error);
+    }
 }
 
 function deleteBill(id) {
     if (confirm('האם את בטוחה שברצונך למחוק שורה זו?')) {
-        bills = bills.filter(b => b.id !== id);
-        saveData();
-        renderBills();
+        try {
+            state.deleteBill(id);
+            renderBills();
+        } catch (error) {
+            showToast('שגיאה בהסרת חשבונית', 'error');
+            console.error('Error deleting bill:', error);
+        }
     }
+}
+
+/**
+ * Update empty state message based on initial readings and bill count
+ */
+function updateEmptyStateMessage() {
+    const noReadingsMsg = document.getElementById('noInitialReadingsMessage');
+    if (!noReadingsMsg) return;
+    
+    const hasInitialReadings = initialSettings.top !== null && initialSettings.bottom !== null;
+    
+    if (!hasInitialReadings) {
+        noReadingsMsg.classList.remove('hidden');
+    } else {
+        noReadingsMsg.classList.add('hidden');
+    }
+}
+
+/**
+ * Scroll to settings section and highlight it
+ */
+function scrollToSettings() {
+    const settingsSection = document.getElementById('settingsSection');
+    if (settingsSection) {
+        settingsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Add highlight animation
+        settingsSection.classList.add('ring-2', 'ring-orange-400');
+        setTimeout(() => {
+            settingsSection.classList.remove('ring-2', 'ring-orange-400');
+        }, 3000);
+    }
+}
+
+/**
+ * Open modal for adding first bill
+ */
+function openAddBillModal() {
+    document.getElementById('modalTitle').textContent = 'פרטי חשבון חדש';
+    document.getElementById('billForm').reset();
+    document.getElementById('formErrors').classList.add('hidden');
+    document.getElementById('billModal').classList.remove('hidden');
 }
 
 // ───── Render Bills ─────
@@ -235,6 +290,7 @@ function renderBills() {
 
     if (bills.length === 0) {
         emptyState.classList.remove('hidden');
+        updateEmptyStateMessage();
         return;
     }
     emptyState.classList.add('hidden');
