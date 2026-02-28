@@ -1,6 +1,6 @@
 {
   "name": "electricity-calc",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Electricity cost calculator for tenants",
   "scripts": {
     "cap:sync": "cap sync"
