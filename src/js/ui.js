@@ -374,3 +374,42 @@ function copyToClipboard(elementId, btnId) {
         console.error('Failed to copy: ', err);
     });
 }
+
+// ───── CSV Fallback ─────
+function showCsvFallback(csvText) {
+    document.getElementById('csvFallbackText').value = csvText;
+    document.getElementById('csvFallbackModal').classList.remove('hidden');
+}
+
+function copyCsvFallback() {
+    const textarea = document.getElementById('csvFallbackText');
+    textarea.select();
+    textarea.setSelectionRange(0, 99999); // For mobile devices
+
+    // Fallback for older browsers
+    try {
+        navigator.clipboard.writeText(textarea.value).then(() => {
+            showCopySuccess();
+        }).catch(() => {
+            document.execCommand('copy');
+            showCopySuccess();
+        });
+    } catch (err) {
+        document.execCommand('copy');
+        showCopySuccess();
+    }
+}
+
+function showCopySuccess() {
+    const btn = document.getElementById('copyCsvFallbackBtn');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> הועתק!';
+    btn.classList.add('bg-green-600', 'hover:bg-green-700');
+    btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+
+    setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+        btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+    }, 2000);
+}

@@ -29,14 +29,26 @@ function exportToCSV() {
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "electricity_data.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const file = new File([blob], 'electricity_data.csv', { type: 'text/csv' });
+
+    // Modern mobile (Android/iOS with Web Share Level 2): native share sheet
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: 'electricity_data.csv' })
+            .catch(err => { if (err.name !== 'AbortError') alert('שגיאה בייצוא: ' + err.message); });
+    } else if (/android|iphone|ipad|ipod/i.test(navigator.userAgent)) {
+        // Older mobile: show raw text in a modal to copy manually
+        showCsvFallback(csv);
+    } else {
+        // Desktop: standard anchor download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'electricity_data.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 }
 
 // ───── CSV Import ─────
