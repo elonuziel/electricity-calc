@@ -133,37 +133,41 @@ function closeModal() {
 function validateForm(formDate, formAmount, formKwh, formTop, formBottom) {
     const errors = [];
 
-    let prevTop = initialSettings.top;
-    let prevBottom = initialSettings.bottom;
+    const currentBills = state.getBills();
+    const settings = state.getSettings();
+    const editing = state.getEditingBillId();
 
-    if (editingBillId) {
-        const idx = bills.findIndex(b => b.id === editingBillId);
+    let prevTop = settings.top;
+    let prevBottom = settings.bottom;
+
+    if (editing) {
+        const idx = currentBills.findIndex(b => b.id === editing);
         if (idx > 0) {
-            prevTop = bills[idx - 1].readings.top;
-            prevBottom = bills[idx - 1].readings.bottom;
+            prevTop = currentBills[idx - 1].readings.top;
+            prevBottom = currentBills[idx - 1].readings.bottom;
         }
     } else {
-        if (bills.length > 0) {
-            const last = bills[bills.length - 1];
+        if (currentBills.length > 0) {
+            const last = currentBills[currentBills.length - 1];
             prevTop = last.readings.top;
             prevBottom = last.readings.bottom;
         }
     }
 
     if (!formKwh || formKwh <= 0) {
-        errors.push('צריכה כללית (קוט"ש) חייבת להיות גדולה מ-0.');
+        errors.push(CONFIG.MESSAGES.READING_MUST_INCREASE);
     }
 
     if (!formAmount || formAmount <= 0) {
-        errors.push('סכום לתשלום חייב להיות גדול מ-0.');
+        errors.push(CONFIG.MESSAGES.INVALID_NUMBER);
     }
 
     if (formTop < prevTop) {
-        errors.push(`קריאת מונה עליונה (${formTop}) קטנה מהקריאה הקודמת (${prevTop}). צריכה שלילית אינה אפשרית.`);
+        errors.push(`${CONFIG.MESSAGES.READING_MUST_INCREASE} (עליונה: ${formTop} < ${prevTop})`);
     }
 
     if (formBottom < prevBottom) {
-        errors.push(`קריאת מונה תחתונה (${formBottom}) קטנה מהקריאה הקודמת (${prevBottom}). צריכה שלילית אינה אפשרית.`);
+        errors.push(`${CONFIG.MESSAGES.READING_MUST_INCREASE} (תחתונה: ${formBottom} < ${prevBottom})`);
     }
 
     const consTop = formTop - prevTop;

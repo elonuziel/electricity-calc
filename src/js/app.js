@@ -82,6 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize state manager sync
         initializeStateSync();
         
+        // Setup offline detection
+        setupOfflineDetection();
+        
         // Load cloud credentials
         const savedCloudId = localStorage.getItem('elecCloudBackupId');
         const savedCloudKey = localStorage.getItem('elecCloudAccessKey');
