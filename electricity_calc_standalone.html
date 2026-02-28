@@ -1024,6 +1024,220 @@ const state = new StateManager();
 
 </script>
     <script>
+/**
+ * Validation module for bill data and form inputs
+ * Extracted from ui.js to be reusable and testable
+ */
+
+/**
+ * Validate a form submission with all bill data
+ * @param {string} formDate - Bill date in YYYY-MM-DD format
+ * @param {number} formAmount - Total bill amount
+ * @param {number} formKwh - Total kWh consumption
+ * @param {number} formTop - Top meter reading
+ * @param {number} formBottom - Bottom meter reading
+ * @param {number} prevTop - Previous top meter reading (for delta check)
+ * @param {number} prevBottom - Previous bottom meter reading (for delta check)
+ * @returns {Array} Array of error messages (empty if valid)
+ */
+function validateBillForm(formDate, formAmount, formKwh, formTop, formBottom, prevTop, prevBottom) {
+    const errors = [];
+
+    // Validate consumption is positive
+    if (!formKwh || formKwh <= 0) {
+        errors.push(CONFIG.MESSAGES.READING_MUST_INCREASE);
+    }
+
+    // Validate amount is positive
+    if (!formAmount || formAmount <= 0) {
+        errors.push(CONFIG.MESSAGES.INVALID_NUMBER);
+    }
+
+    // Validate readings don't go backward (no negative consumption)
+    if (formTop < prevTop) {
+        errors.push(`${CONFIG.MESSAGES.READING_MUST_INCREASE} (עליונה: ${formTop} < ${prevTop})`);
+    }
+
+    if (formBottom < prevBottom) {
+        errors.push(`${CONFIG.MESSAGES.READING_MUST_INCREASE} (תחתונה: ${formBottom} < ${prevBottom})`);
+    }
+
+    // Validate tenant consumption doesn't exceed total
+    const consTop = formTop - prevTop;
+    const consBottom = formBottom - prevBottom;
+    const totalTenants = consTop + consBottom;
+    if (formKwh > 0 && totalTenants > formKwh) {
+        errors.push(`סך צריכת הדירות (${totalTenants} קוט"ש) עולה על הצריכה הכללית (${formKwh} קוט"ש). בדקי את הנתונים.`);
+    }
+
+    return errors;
+}
+
+/**
+ * Get previous meter readings based on editing context
+ * @param {string} editingBillId - ID of bill being edited (null if adding new)
+ * @returns {Object} { prevTop, prevBottom } from previous bill or initial settings
+ */
+function getPreviousReadings(editingBillId) {
+    const currentBills = state.getBills();
+    const settings = state.getSettings();
+    
+    let prevTop = settings.top;
+    let prevBottom = settings.bottom;
+
+    if (editingBillId) {
+        const idx = currentBills.findIndex(b => b.id === editingBillId);
+        if (idx > 0) {
+            prevTop = currentBills[idx - 1].readings.top;
+            prevBottom = currentBills[idx - 1].readings.bottom;
+        }
+    } else {
+        if (currentBills.length > 0) {
+            const last = currentBills[currentBills.length - 1];
+            prevTop = last.readings.top;
+            prevBottom = last.readings.bottom;
+        }
+    }
+
+    return { prevTop, prevBottom };
+}
+
+/**
+ * Validate readings are within acceptable ranges
+ * @param {number} reading - The meter reading to validate
+ * @returns {boolean} - True if valid
+ */
+function isValidReading(reading) {
+    return reading >= CONFIG.VALIDATION.MIN_READING && reading <= CONFIG.VALIDATION.MAX_READING;
+}
+
+/**
+ * Validate price per kWh is within range
+ * @param {number} price - Price to validate
+ * @returns {boolean} - True if valid
+ */
+function isValidPrice(price) {
+    return price >= CONFIG.VALIDATION.MIN_PRICE && price <= CONFIG.VALIDATION.MAX_PRICE;
+}
+
+</script>
+    <script>
+/**
+ * Calculator module for electricity bill calculations
+ * Extracted from ui.js to be reusable and testable
+ */
+
+/**
+ * Calculate consumption between two readings
+ * @param {number} currentReading - Current meter reading
+ * @param {number} previousReading - Previous meter reading
+ * @returns {number} - Consumption (current - previous)
+ */
+function calculateConsumption(currentReading, previousReading) {
+    return Math.max(0, currentReading - previousReading);
+}
+
+/**
+ * Calculate cost for consumption at given rate
+ * @param {number} consumption - kWh consumed
+ * @param {number} rate - Price per kWh
+ * @returns {number} - Total cost
+ */
+function calculateCost(consumption, rate) {
+    return Math.round(consumption * rate * 100) / 100; // Round to 2 decimals
+}
+
+/**
+ * Calculate all metrics for a single bill
+ * @param {Object} bill - Bill object with readings and main data
+ * @param {number} prevTopReading - Previous top meter reading
+ * @param {number} prevBottomReading - Previous bottom meter reading
+ * @returns {Object} - Calculated metrics
+ */
+function calculateBillMetrics(bill, prevTopReading, prevBottomReading) {
+    const rate = bill.main.kwh > 0 ? bill.main.amount / bill.main.kwh : 0;
+
+    const consumptionTop = calculateConsumption(bill.readings.top, prevTopReading);
+    const consumptionBottom = calculateConsumption(bill.readings.bottom, prevBottomReading);
+
+    const costTop = calculateCost(consumptionTop, rate);
+    const costBottom = calculateCost(consumptionBottom, rate);
+
+    return {
+        rate: Math.round(rate * 100) / 100,
+        consumptionTop,
+        consumptionBottom,
+        costTop,
+        costBottom,
+        totalConsumption: consumptionTop + consumptionBottom,
+        totalCost: costTop + costBottom
+    };
+}
+
+/**
+ * Calculate effective rate (price per kWh)
+ * @param {number} totalAmount - Total bill amount
+ * @param {number} totalKwh - Total kWh consumed
+ * @returns {number} - Rate (per kWh)
+ */
+function calculateEffectiveRate(totalAmount, totalKwh) {
+    if (totalKwh <= 0) return 0;
+    return Math.round((totalAmount / totalKwh) * 100) / 100;
+}
+
+/**
+ * Calculate percentage of total cost
+ * @param {number} amount - Amount to calculate percentage for
+ * @param {number} total - Total amount
+ * @returns {number} - Percentage (0-100)
+ */
+function calculatePercentage(amount, total) {
+    if (total <= 0) return 0;
+    return Math.round((amount / total) * 100);
+}
+
+/**
+ * Calculate summary statistics for all bills
+ * @param {Array} bills - Array of bill objects
+ * @param {number} initialTopReading - Initial top meter reading
+ * @param {number} initialBottomReading - Initial bottom meter reading
+ * @returns {Object} - Summary statistics
+ */
+function calculateBillsSummary(bills, initialTopReading, initialBottomReading) {
+    if (bills.length === 0) {
+        return {
+            totalBills: 0,
+            totalConsumption: 0,
+            totalCost: 0,
+            averageRate: 0,
+            averageBillCost: 0
+        };
+    }
+
+    let totalConsumption = 0;
+    let totalCost = 0;
+    let prevTop = initialTopReading;
+    let prevBottom = initialBottomReading;
+
+    bills.forEach(bill => {
+        const metrics = calculateBillMetrics(bill, prevTop, prevBottom);
+        totalConsumption += metrics.totalConsumption;
+        totalCost += metrics.totalCost;
+        prevTop = bill.readings.top;
+        prevBottom = bill.readings.bottom;
+    });
+
+    return {
+        totalBills: bills.length,
+        totalConsumption: Math.round(totalConsumption * 100) / 100,
+        totalCost: Math.round(totalCost * 100) / 100,
+        averageRate: calculateEffectiveRate(totalCost, totalConsumption),
+        averageBillCost: Math.round((totalCost / bills.length) * 100) / 100
+    };
+}
+
+</script>
+    <script>
 // ───── State ─────
 // DEPRECATED: Use stateManager instead
 // Keeping these for backward compatibility, but prefer state.getBills(), state.getSettings(), etc.
@@ -1084,7 +1298,6 @@ function resetAllData() {
 </script>
     <script>
 // ───── JSONHosting Cloud Backup ─────
-const JSONHOSTING_API = 'https://jsonhosting.com/api/json';
 
 // ===== OFFLINE DETECTION =====
 
@@ -1161,6 +1374,9 @@ function validateCloudData(data) {
 
 /**
  * Show preview modal before restoring cloud data
+ * @param {Array} cloudBills - Bills from cloud backup
+ * @param {Object} cloudSettings - Settings from cloud backup
+ * @param {Function} onConfirm - Callback function to run on confirm (no string injection)
  */
 function showCloudRestoreModal(cloudBills, cloudSettings, onConfirm) {
     const existingBills = bills.length;
@@ -1177,16 +1393,21 @@ function showCloudRestoreModal(cloudBills, cloudSettings, onConfirm) {
             </div>
             <p class="mb-6 text-gray-700">האם לשחזר את הנתונים מהגיבוי?</p>
             <div class="flex gap-3">
-                <button onclick="this.closest('div').remove()" class="flex-1 bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
+                <button id="cloudRestoreCancelBtn" class="flex-1 bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
                     ביטול
                 </button>
-                <button onclick="${onConfirm}; this.closest('div').remove()" class="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <button id="cloudRestoreConfirmBtn" class="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     החלף הכל
                 </button>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
+    modal.querySelector('#cloudRestoreCancelBtn').addEventListener('click', () => modal.remove());
+    modal.querySelector('#cloudRestoreConfirmBtn').addEventListener('click', () => {
+        onConfirm();
+        modal.remove();
+    });
 }
 
 async function loadFromCloud() {
@@ -1216,7 +1437,7 @@ async function loadFromCloud() {
     const spinner = showLoadingSpinner('טוען נתונים מהענן...');
     
     try {
-        const url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/' + backupId + '/raw')}`;
+        const url = `${CONFIG.CLOUD.CORS_PROXY}${encodeURIComponent(CONFIG.CLOUD.API_URL + '/' + backupId + '/raw')}`;
         const res = await fetch(url, { signal: AbortSignal.timeout(CONFIG.CLOUD.FETCH_TIMEOUT) });
         if (!res.ok) {
             if (res.status === 404) throw new Error('גיבוי לא נמצא. בדוק את המזהה שלך.');
@@ -1239,14 +1460,14 @@ async function loadFromCloud() {
         hideLoadingSpinner();
         
         // Show preview modal and ask for confirmation
-        showCloudRestoreModal(cloudBills, cloudSettings, `
-            state.replaceAll(${JSON.stringify(cloudBills)}, ${JSON.stringify(cloudSettings)});
+        showCloudRestoreModal(cloudBills, cloudSettings, () => {
+            state.replaceAll(cloudBills, cloudSettings);
             renderSettings();
             renderBills();
             updateInitBanner();
-            safeLocalStorageSet('elecCloudBackupId', '${backupId}');
+            safeLocalStorageSet('elecCloudBackupId', backupId);
             showCloudStatus('הנתונים נטענו בהצלחה מהענן! ✓');
-        `);
+        });
     } catch (err) {
         hideLoadingSpinner();
         
@@ -1261,6 +1482,12 @@ async function loadFromCloud() {
 }
 
 async function saveToCloud() {
+    // Check if online
+    if (!isOnline()) {
+        showCloudStatus('לא ניתן לשמור נתונים כשאתה לא מחובר לאינטרנט.', true);
+        return;
+    }
+
     let backupId = document.getElementById('cloudBackupId').value.trim();
     const accessKey = document.getElementById('cloudAccessKey').value.trim();
 
@@ -1283,14 +1510,14 @@ async function saveToCloud() {
         settings: initialSettings
     });
 
-    showCloudStatus('שומר נתונים לענן...');
+    const spinner = showLoadingSpinner('שומר נתונים לענן...');
     try {
         let url, method, body;
         const headers = { 'Content-Type': 'application/json' };
 
         if (backupId) {
             // Update existing backup
-            url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/' + backupId)}`;
+            url = `${CONFIG.CLOUD.CORS_PROXY}${encodeURIComponent(CONFIG.CLOUD.API_URL + '/' + backupId)}`;
             method = 'PUT';
             body = JSON.stringify({
                 editKey: accessKey,
@@ -1298,12 +1525,12 @@ async function saveToCloud() {
             });
         } else {
             // Create new backup
-            url = `https://corsproxy.io/?${encodeURIComponent(JSONHOSTING_API + '/save')}`;
+            url = `${CONFIG.CLOUD.CORS_PROXY}${encodeURIComponent(CONFIG.CLOUD.API_URL + '/save')}`;
             method = 'POST';
             body = payload;
         }
 
-        const res = await fetch(url, { method, headers, body });
+        const res = await fetch(url, { method, headers, body, signal: AbortSignal.timeout(CONFIG.CLOUD.FETCH_TIMEOUT) });
         if (!res.ok) throw new Error('שגיאה בפעולת הגיבוי. בדוק את המזהה ואת מפתח העריכה.');
 
         if (method === 'POST') {
@@ -1314,18 +1541,23 @@ async function saveToCloud() {
             document.getElementById('cloudBackupId').value = newId;
             document.getElementById('cloudAccessKey').value = newEditKey;
 
-            localStorage.setItem('elecCloudBackupId', newId);
-            localStorage.setItem('elecCloudAccessKey', newEditKey);
+            safeLocalStorageSet('elecCloudBackupId', newId);
+            safeLocalStorageSet('elecCloudAccessKey', newEditKey);
 
+            hideLoadingSpinner();
             showBackupSuccessModal(newId, newEditKey);
             showCloudStatus('גיבוי חדש נוצר בהצלחה! ✓');
         } else {
-            localStorage.setItem('elecCloudBackupId', backupId);
-            localStorage.setItem('elecCloudAccessKey', accessKey);
+            safeLocalStorageSet('elecCloudBackupId', backupId);
+            safeLocalStorageSet('elecCloudAccessKey', accessKey);
+            hideLoadingSpinner();
             showCloudStatus('הנתונים עודכנו בענן בהצלחה! ✓');
         }
     } catch (err) {
-        if (err.message === 'Failed to fetch') {
+        hideLoadingSpinner();
+        if (err.name === 'AbortError') {
+            showCloudStatus('פג זמן ההמתנה. הרשת כנראה איטית.', true);
+        } else if (err.message === 'Failed to fetch') {
             showCloudStatus('שגיאת רשת: לא ניתן להתחבר לשרת הגיבוי.', true);
         } else {
             showCloudStatus(err.message, true);
@@ -1553,7 +1785,7 @@ function saveSettings() {
     if (bottomVal) initialSettings.bottom = parseFloat(bottomVal);
     saveSettingsState(); // from state.js
     renderBills();
-    showToast(CONFIG.MESSAGES.SETTINGS_SAVED);
+    showToast(CONFIG.MESSAGES.SAVE_SUCCESS);
     updateEmptyStateMessage();
 }
 
@@ -1676,37 +1908,41 @@ function closeModal() {
 function validateForm(formDate, formAmount, formKwh, formTop, formBottom) {
     const errors = [];
 
-    let prevTop = initialSettings.top;
-    let prevBottom = initialSettings.bottom;
+    const currentBills = state.getBills();
+    const settings = state.getSettings();
+    const editing = state.getEditingBillId();
 
-    if (editingBillId) {
-        const idx = bills.findIndex(b => b.id === editingBillId);
+    let prevTop = settings.top;
+    let prevBottom = settings.bottom;
+
+    if (editing) {
+        const idx = currentBills.findIndex(b => b.id === editing);
         if (idx > 0) {
-            prevTop = bills[idx - 1].readings.top;
-            prevBottom = bills[idx - 1].readings.bottom;
+            prevTop = currentBills[idx - 1].readings.top;
+            prevBottom = currentBills[idx - 1].readings.bottom;
         }
     } else {
-        if (bills.length > 0) {
-            const last = bills[bills.length - 1];
+        if (currentBills.length > 0) {
+            const last = currentBills[currentBills.length - 1];
             prevTop = last.readings.top;
             prevBottom = last.readings.bottom;
         }
     }
 
     if (!formKwh || formKwh <= 0) {
-        errors.push('צריכה כללית (קוט"ש) חייבת להיות גדולה מ-0.');
+        errors.push(CONFIG.MESSAGES.READING_MUST_INCREASE);
     }
 
     if (!formAmount || formAmount <= 0) {
-        errors.push('סכום לתשלום חייב להיות גדול מ-0.');
+        errors.push(CONFIG.MESSAGES.INVALID_NUMBER);
     }
 
     if (formTop < prevTop) {
-        errors.push(`קריאת מונה עליונה (${formTop}) קטנה מהקריאה הקודמת (${prevTop}). צריכה שלילית אינה אפשרית.`);
+        errors.push(`${CONFIG.MESSAGES.READING_MUST_INCREASE} (עליונה: ${formTop} < ${prevTop})`);
     }
 
     if (formBottom < prevBottom) {
-        errors.push(`קריאת מונה תחתונה (${formBottom}) קטנה מהקריאה הקודמת (${prevBottom}). צריכה שלילית אינה אפשרית.`);
+        errors.push(`${CONFIG.MESSAGES.READING_MUST_INCREASE} (תחתונה: ${formBottom} < ${prevBottom})`);
     }
 
     const consTop = formTop - prevTop;
@@ -2098,6 +2334,9 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         // Initialize state manager sync
         initializeStateSync();
+        
+        // Setup offline detection
+        setupOfflineDetection();
         
         // Load cloud credentials
         const savedCloudId = localStorage.getItem('elecCloudBackupId');
