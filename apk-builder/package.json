@@ -3,6 +3,7 @@
   "version": "3.0.0",
   "description": "Electricity cost calculator for tenants",
   "scripts": {
+    "build": "node build.js",
     "cap:sync": "cap sync"
   },
   "dependencies": {
@@ -11,6 +12,9 @@
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^6.0.0"
+    "@capacitor/cli": "^6.0.0",
+    "@fullhuman/postcss-purgecss": "^6.0.0",
+    "postcss": "^8.4.35",
+    "purgecss": "^6.0.0"
   }
 }

@@ -576,6 +576,39 @@ test('addBill emits event', (done) => {
 
 ---
 
+## CI/CD & APK Signing
+
+### Build Workflow (`.github/workflows/build-apk.yml`)
+
+Triggered manually via `workflow_dispatch`. Steps:
+1. Checkout repo, set up Node.js 20 and JDK 17
+2. `npm install` + `node build.js` (from `apk-builder/`) → produces standalone HTML + `dist/`
+3. Version bump in `apk-builder/package.json`
+4. Capacitor `add android` → `sync android` → `assembleDebug`
+5. Upload APK to GitHub Release with AI-generated changelog
+
+### Debug Keystore (APK Signing)
+
+A persistent debug keystore is committed at `.github/keys/debug.keystore`. This ensures every CI build produces APKs signed with the **same key**, so users can install updates without uninstalling first.
+
+| Property       | Value                |
+|----------------|----------------------|
+| Location       | `.github/keys/debug.keystore` |
+| Alias          | `androiddebugkey`    |
+| Store password | `android`            |
+| Key password   | `android`            |
+| Algorithm      | RSA 2048-bit         |
+| Validity       | 10,000 days          |
+
+**How it works in CI:**
+- The workflow copies the committed keystore to `~/.android/debug.keystore` (the default location Gradle uses for debug builds)
+- If the keystore doesn't exist yet, it generates one and commits it
+- This is a **debug** key with no secret value — safe to commit to the repo
+
+**Important:** If this keystore is ever deleted or regenerated, users must uninstall the old APK before installing the new one (signature mismatch). Avoid regenerating unless absolutely necessary.
+
+---
+
 ## File Structure Reference
 
 ```
@@ -596,10 +629,18 @@ electricity/
 │       └── services/
 │           ├── cloud.js           # JSONHosting integration
 │           └── csv.js             # CSV import/export
-├── build.js                        # Build script (bundle standalone HTML)
-├── electricity_calc_standalone.html # Bundled single-file version
-├── dist/                           # Capacitor directory (for APK build)
-└── apk-builder/                    # Capacitor config for Android APK
+├── .github/
+│   ├── keys/
+│   │   └── debug.keystore         # Persistent debug signing key
+│   └── workflows/
+│       └── build-apk.yml          # CI/CD workflow for APK builds
+├── apk-builder/                    # Build tooling & Capacitor config
+│   ├── build.js                   # Build script (bundle standalone HTML)
+│   ├── package.json               # All deps (build + Capacitor)
+│   ├── capacitor.config.json      # Capacitor Android config
+│   └── assets/                    # App icons for Android
+├── electricity_calc_standalone.html # Bundled single-file version (output)
+└── dist/                           # Capacitor web dir (output)
 ```
 
 ---

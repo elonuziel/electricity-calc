@@ -21,9 +21,9 @@ const fs = require('fs');
 const path = require('path');
 const { PurgeCSS } = require('purgecss');
 
-const SRC_DIR = path.join(__dirname, 'src');
-const DIST_DIR = path.join(__dirname, 'dist');
-const OUT_FILE = path.join(__dirname, 'electricity_calc_standalone.html');
+const SRC_DIR = path.join(__dirname, '..', 'src');
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+const OUT_FILE = path.join(__dirname, '..', 'electricity_calc_standalone.html');
 
 // Read file relative to src/
 function readSrc(relPath) {
